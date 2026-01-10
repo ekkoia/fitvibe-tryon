@@ -289,7 +289,7 @@ export default function Atendimento() {
                   <div className="space-y-3 mt-4">
                     <Button
                       onClick={handleSaveResult}
-                      className="w-full py-4 lg:py-6 rounded-xl font-semibold flex items-center justify-center gap-2 bg-foreground text-background hover:bg-foreground/90"
+                      className="w-full py-4 lg:py-6 rounded-xl font-semibold flex items-center justify-center gap-2 btn-lime"
                     >
                       <Download className="w-4 h-4 lg:w-5 lg:h-5" />
                       SALVAR RESULTADO
@@ -297,7 +297,7 @@ export default function Atendimento() {
                     <Button
                       onClick={handleNewSimulation}
                       variant="outline"
-                      className="w-full py-4 lg:py-6 rounded-xl font-semibold flex items-center justify-center gap-2 border-border hover:bg-muted"
+                      className="w-full py-4 lg:py-6 rounded-xl font-semibold flex items-center justify-center gap-2 border-primary text-primary hover:bg-primary/10"
                     >
                       <RefreshCw className="w-4 h-4 lg:w-5 lg:h-5" />
                       NOVA SIMULAÇÃO
