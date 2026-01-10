@@ -39,33 +39,25 @@ serve(async (req) => {
     const clientData = cleanBase64(clientImage);
     const clothingData = cleanBase64(clothingImage);
 
-    // Professional e-commerce prompt focused on product visualization
-    const prompt = `You are a professional fashion visualization assistant for an e-commerce platform.
+    // High-fidelity prompt calibrated for fitness virtual try-on (original working prompt)
+    const prompt = `CONTEXT: High-end virtual try-on for professional fitness e-commerce.
+      
+TASK: Synthesize a photo of the person in IMAGE 1 wearing the EXACT garment from IMAGE 2.
 
-TASK: Create a product visualization showing how the athletic wear from the second image would look when worn by the person in the first image.
+STRICT CONSTRAINTS:
+1. DESIGN FIDELITY: Transfer 100% of the colors, patterns, logos, and textures from IMAGE 2. Do not simplify or alter the pattern.
+2. ANATOMY: Keep the person's face, skin tone, hair, and body shape from IMAGE 1 identical.
+3. PHYSICS: Adapt the fabric to the person's pose, creating realistic compression wrinkles and highlights typical of sports fabrics (spandex/polyamide).
+4. CLEANLINESS: Seamlessly blend the garment onto the person. Edges where skin meets fabric must be photorealistic.
 
-REQUIREMENTS:
-1. PRODUCT ACCURACY: The athletic garment must match the exact design, colors, patterns and branding from the product image.
-2. PROFESSIONAL RESULT: Create a clean, professional e-commerce style image suitable for online retail.
-3. NATURAL FIT: Show the garment with natural fabric draping appropriate for athletic/fitness wear.
-4. MAINTAIN IDENTITY: The person's face, hair, and overall appearance should remain unchanged.
+OUTPUT: Generate a single photorealistic image showing the person wearing the exact garment.`;
 
-This is for a legitimate fitness apparel e-commerce virtual try-on feature.
+    console.log("Calling Lovable AI for try-on synthesis...");
 
-Generate a single professional product visualization image.`;
-
-    // Models to try in order of preference
-    const models = [
-      "google/gemini-3-pro-image-preview",
-      "google/gemini-2.5-flash-image-preview"
-    ];
-
-    let lastError: string | null = null;
-
-    for (const model of models) {
-      console.log(`Attempting try-on with model: ${model}`);
-
-      try {
+    const callWithRetry = async (retries = 3): Promise<Response> => {
+      for (let attempt = 1; attempt <= retries; attempt++) {
+        console.log(`Attempt ${attempt}/${retries}`);
+        
         const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -73,7 +65,7 @@ Generate a single professional product visualization image.`;
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: model,
+            model: "google/gemini-2.5-flash-image-preview",
             messages: [
               {
                 role: "user",
@@ -96,7 +88,7 @@ Generate a single professional product visualization image.`;
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error(`Model ${model} error:`, response.status, errorText);
+          console.error(`Attempt ${attempt} error:`, response.status, errorText);
           
           if (response.status === 429) {
             return new Response(
@@ -111,50 +103,65 @@ Generate a single professional product visualization image.`;
             );
           }
           
-          lastError = `Model ${model} returned status ${response.status}`;
-          continue;
+          // Retry on 500 errors
+          if (response.status === 500 && attempt < retries) {
+            const delay = attempt * 2000;
+            console.log(`Waiting ${delay}ms before retry...`);
+            await new Promise(r => setTimeout(r, delay));
+            continue;
+          }
+          
+          return new Response(
+            JSON.stringify({ error: "Erro ao processar imagem com IA" }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
         }
 
         const data = await response.json();
-        console.log(`Model ${model} response received`);
+        console.log("Lovable AI response received");
 
         // Check for safety filter
-        const finishReason = data.choices?.[0]?.native_finish_reason || data.choices?.[0]?.finish_reason;
+        const finishReason = data.choices?.[0]?.native_finish_reason;
         if (finishReason === "IMAGE_SAFETY") {
-          console.warn(`Model ${model} blocked by safety filter`);
-          lastError = "Filtro de segurança ativado";
-          continue;
+          console.warn(`Attempt ${attempt} blocked by safety filter`);
+          if (attempt < retries) {
+            const delay = attempt * 2000;
+            console.log(`Waiting ${delay}ms before retry...`);
+            await new Promise(r => setTimeout(r, delay));
+            continue;
+          }
+          return new Response(
+            JSON.stringify({ error: "As imagens não puderam ser processadas. Tente com imagens diferentes." }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
         }
 
         // Extract the generated image from the response
         const generatedImage = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
         if (generatedImage) {
-          console.log(`Successfully generated image with model: ${model}`);
+          console.log("Successfully generated try-on image");
           return new Response(
             JSON.stringify({ resultImage: generatedImage }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
 
-        console.warn(`Model ${model} returned no image:`, JSON.stringify(data));
-        lastError = "Modelo não retornou imagem";
-        
-      } catch (modelError) {
-        console.error(`Model ${model} exception:`, modelError);
-        lastError = modelError instanceof Error ? modelError.message : "Erro ao chamar modelo";
+        console.error("No image in response:", JSON.stringify(data));
+        if (attempt < retries) {
+          const delay = attempt * 2000;
+          await new Promise(r => setTimeout(r, delay));
+          continue;
+        }
       }
-    }
+      
+      return new Response(
+        JSON.stringify({ error: "Nenhuma imagem foi gerada pela IA após várias tentativas" }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    };
 
-    // All models failed
-    console.error("All models failed. Last error:", lastError);
-    return new Response(
-      JSON.stringify({ 
-        error: "Não foi possível gerar a visualização. Por favor, tente com imagens diferentes.",
-        details: lastError 
-      }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return await callWithRetry(3);
 
   } catch (error) {
     console.error("Try-on service error:", error);
