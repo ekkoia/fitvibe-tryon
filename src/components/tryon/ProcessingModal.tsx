@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { User, Shirt, Zap, Sparkles, Check } from "lucide-react";
+import { User, Shirt, Zap, Sparkles, Check, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +14,8 @@ interface ProcessingStep {
 
 interface ProcessingModalProps {
   isOpen: boolean;
-  onComplete: () => void;
+  isWaitingResult: boolean;
+  onStepsComplete: () => void;
 }
 
 const initialSteps: ProcessingStep[] = [
@@ -24,20 +25,19 @@ const initialSteps: ProcessingStep[] = [
   { icon: Sparkles, label: "Finalizando iluminação realista...", completed: false, active: false },
 ];
 
-export function ProcessingModal({ isOpen, onComplete }: ProcessingModalProps) {
+export function ProcessingModal({ isOpen, isWaitingResult, onStepsComplete }: ProcessingModalProps) {
   const [steps, setSteps] = useState<ProcessingStep[]>(initialSteps);
-  const [currentStep, setCurrentStep] = useState(0);
+  const [stepsFinished, setStepsFinished] = useState(false);
 
   useEffect(() => {
     if (!isOpen) {
       setSteps(initialSteps);
-      setCurrentStep(0);
+      setStepsFinished(false);
       return;
     }
 
     const processSteps = async () => {
       for (let i = 0; i < initialSteps.length; i++) {
-        setCurrentStep(i);
         setSteps(prev => prev.map((step, idx) => ({
           ...step,
           active: idx === i,
@@ -53,12 +53,12 @@ export function ProcessingModal({ isOpen, onComplete }: ProcessingModalProps) {
         completed: true,
       })));
 
-      await new Promise(resolve => setTimeout(resolve, 500));
-      onComplete();
+      setStepsFinished(true);
+      onStepsComplete();
     };
 
     processSteps();
-  }, [isOpen, onComplete]);
+  }, [isOpen, onStepsComplete]);
 
   return (
     <Dialog open={isOpen}>
@@ -72,50 +72,62 @@ export function ProcessingModal({ isOpen, onComplete }: ProcessingModalProps) {
 
           {/* Title */}
           <h2 className="text-2xl font-bold text-foreground mb-2">
-            Transformando...
+            {stepsFinished && isWaitingResult ? "Quase lá..." : "Transformando..."}
           </h2>
           <p className="text-muted-foreground text-sm mb-8">
-            Nossa IA está vestindo a peça fitness com<br />
-            precisão técnica e realismo.
+            {stepsFinished && isWaitingResult ? (
+              <>Aguarde enquanto finalizamos a<br />síntese da imagem...</>
+            ) : (
+              <>Nossa IA está vestindo a peça fitness com<br />precisão técnica e realismo.</>
+            )}
           </p>
 
-          {/* Steps */}
-          <div className="space-y-3 text-left">
-            {steps.map((step, index) => {
-              const Icon = step.icon;
-              return (
-                <div
-                  key={step.label}
-                  className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ${
-                    step.active 
-                      ? "bg-primary/10" 
-                      : step.completed 
-                        ? "opacity-50" 
-                        : "opacity-30"
-                  }`}
-                >
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
-                    step.active 
-                      ? "bg-primary/20" 
-                      : step.completed 
-                        ? "bg-success/20" 
-                        : "bg-muted"
-                  }`}>
-                    {step.completed ? (
-                      <Check className="w-5 h-5 text-success" />
-                    ) : (
-                      <Icon className={`w-5 h-5 ${step.active ? "text-primary" : "text-muted-foreground"}`} />
-                    )}
+          {/* Steps or Waiting State */}
+          {stepsFinished && isWaitingResult ? (
+            <div className="flex flex-col items-center gap-4 py-4">
+              <Loader2 className="w-8 h-8 text-primary animate-spin" />
+              <p className="text-sm text-primary font-medium">
+                Gerando resultado final...
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3 text-left">
+              {steps.map((step) => {
+                const Icon = step.icon;
+                return (
+                  <div
+                    key={step.label}
+                    className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ${
+                      step.active 
+                        ? "bg-primary/10" 
+                        : step.completed 
+                          ? "opacity-50" 
+                          : "opacity-30"
+                    }`}
+                  >
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
+                      step.active 
+                        ? "bg-primary/20" 
+                        : step.completed 
+                          ? "bg-success/20" 
+                          : "bg-muted"
+                    }`}>
+                      {step.completed ? (
+                        <Check className="w-5 h-5 text-success" />
+                      ) : (
+                        <Icon className={`w-5 h-5 ${step.active ? "text-primary" : "text-muted-foreground"}`} />
+                      )}
+                    </div>
+                    <span className={`text-sm font-medium ${
+                      step.active ? "text-primary" : "text-foreground"
+                    }`}>
+                      {step.label}
+                    </span>
                   </div>
-                  <span className={`text-sm font-medium ${
-                    step.active ? "text-primary" : "text-foreground"
-                  }`}>
-                    {step.label}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
