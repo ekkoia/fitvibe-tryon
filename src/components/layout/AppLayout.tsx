@@ -3,7 +3,7 @@ import { AppSidebar } from "./AppSidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCredits } from "@/hooks/useCredits";
 import { Link } from "react-router-dom";
-import { Coins, User, Clock } from "lucide-react";
+import { Coins, User, LogOut, UserCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,
@@ -11,6 +11,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -19,14 +27,14 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const { profile } = useAuth();
+  const { profile, user, signOut } = useAuth();
   const { totalCredits, plan, planName, loading } = useCredits();
 
-  // Update time every minute
+  // Update time every second for accurate display
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
-    }, 60000);
+    }, 1000);
     return () => clearInterval(timer);
   }, []);
 
@@ -37,7 +45,26 @@ export function AppLayout({ children }: AppLayoutProps) {
     });
   };
 
+  const formatDayOfWeek = (date: Date) => {
+    return date.toLocaleDateString("pt-BR", {
+      weekday: "long",
+    });
+  };
+
+  const getGreeting = (date: Date) => {
+    const hour = date.getHours();
+    if (hour >= 5 && hour < 12) return "Bom dia";
+    if (hour >= 12 && hour < 18) return "Boa tarde";
+    return "Boa noite";
+  };
+
+  const getFirstName = (fullName: string) => {
+    return fullName.split(" ")[0];
+  };
+
   const userName = profile?.full_name || "Usuário";
+  const firstName = getFirstName(userName);
+  const userEmail = user?.email || "";
   const maxPlanCredits = plan === "trial" ? 50 : plan === "starter" ? 100 : plan === "growth" ? 300 : 800;
 
   return (
@@ -46,14 +73,18 @@ export function AppLayout({ children }: AppLayoutProps) {
         <AppSidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
         
         {/* Header */}
-        <header className={`fixed top-0 right-0 h-14 bg-background/80 backdrop-blur-sm border-b border-border z-40 flex items-center justify-between px-4 md:px-6 transition-all duration-300 left-14 ${!sidebarCollapsed ? 'md:left-48' : 'md:left-14'}`}>
-          {/* Left side - Time */}
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Clock className="w-4 h-4" />
-            <span className="text-sm font-medium">{formatTime(currentTime)}</span>
+        <header className={`fixed top-0 right-0 h-16 bg-background/80 backdrop-blur-sm border-b border-border z-40 flex items-center justify-between px-4 md:px-6 transition-all duration-300 left-14 ${!sidebarCollapsed ? 'md:left-48' : 'md:left-14'}`}>
+          {/* Left side - Greeting and Time */}
+          <div className="flex flex-col">
+            <span className="text-sm font-semibold text-foreground">
+              {getGreeting(currentTime)}, {firstName}
+            </span>
+            <span className="text-xs text-muted-foreground capitalize">
+              {formatDayOfWeek(currentTime)}, {formatTime(currentTime)}
+            </span>
           </div>
 
-          {/* Right side - Credits, Badge, Name, Profile */}
+          {/* Right side - Credits, Badge, Profile */}
           <div className="flex items-center gap-3 md:gap-4">
             {/* Credits Counter */}
             <Tooltip>
@@ -85,25 +116,36 @@ export function AppLayout({ children }: AppLayoutProps) {
               {planName}
             </Badge>
 
-            {/* User Name (hidden on small screens) */}
-            <span className="text-sm font-medium text-foreground hidden md:block max-w-[120px] truncate">
-              {userName}
-            </span>
-
-            {/* Profile Icon */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link 
-                  to="/perfil" 
-                  className="w-8 h-8 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center hover:bg-primary/20 transition-colors"
+            {/* Profile Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button 
+                  className="w-8 h-8 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center hover:bg-primary/20 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
                 >
                   <User className="w-4 h-4 text-primary" />
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="text-xs">Meu Perfil</p>
-              </TooltipContent>
-            </Tooltip>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="font-normal">
+                  <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/perfil" className="flex items-center gap-2 cursor-pointer">
+                    <UserCircle className="w-4 h-4" />
+                    <span>Conta</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={() => signOut()}
+                  className="text-destructive focus:text-destructive cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  <span>Sair</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
 
@@ -116,7 +158,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         )}
 
         {/* Main Content */}
-        <main className={`pt-14 min-h-screen flex justify-center transition-all duration-300 ml-14 ${!sidebarCollapsed ? 'md:ml-48' : 'md:ml-14'}`}>
+        <main className={`pt-16 min-h-screen flex justify-center transition-all duration-300 ml-14 ${!sidebarCollapsed ? 'md:ml-48' : 'md:ml-14'}`}>
           <div className="p-6 w-full max-w-7xl">
             {children}
           </div>
