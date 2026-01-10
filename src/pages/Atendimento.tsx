@@ -62,16 +62,16 @@ export default function Atendimento() {
   const canGenerate = clientPhoto && selectedProduct;
 
   return (
-    <div className="animate-fade-in h-[calc(100vh-7rem)]">
-      <div className="grid grid-cols-12 gap-6 h-full">
+    <div className="animate-fade-in min-h-[calc(100vh-7rem)]">
+      <div className="flex flex-col lg:grid lg:grid-cols-12 gap-4 lg:gap-6 h-full">
         {/* Leads Panel */}
-        <div className="col-span-3 bg-card border border-border rounded-xl overflow-hidden flex flex-col">
-          <div className="p-4 border-b border-border flex items-center justify-between">
+        <div className="lg:col-span-3 bg-card border border-border rounded-xl overflow-hidden flex flex-col max-h-48 lg:max-h-none">
+          <div className="p-3 lg:p-4 border-b border-border flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <MessageSquare className="w-5 h-5 text-muted-foreground" />
-              <span className="font-semibold text-foreground">INBOX LEADS</span>
+              <MessageSquare className="w-4 h-4 lg:w-5 lg:h-5 text-muted-foreground" />
+              <span className="font-semibold text-foreground text-sm lg:text-base">INBOX LEADS</span>
             </div>
-            <span className="px-3 py-1 bg-primary text-primary-foreground text-xs font-semibold rounded-full">
+            <span className="px-2 lg:px-3 py-1 bg-primary text-primary-foreground text-[10px] lg:text-xs font-semibold rounded-full">
               NOVO LEAD
             </span>
           </div>
@@ -81,21 +81,21 @@ export default function Atendimento() {
               <button
                 key={lead.id}
                 onClick={() => setSelectedLead(lead)}
-                className={`w-full p-4 border-b border-border text-left transition-colors ${
+                className={`w-full p-3 lg:p-4 border-b border-border text-left transition-colors ${
                   selectedLead?.id === lead.id 
                     ? "bg-muted/50" 
                     : "hover:bg-muted/30"
                 }`}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium text-foreground">{lead.phone}</span>
-                  <span className="text-xs text-muted-foreground">{lead.time}</span>
+                <div className="flex items-center justify-between mb-1 lg:mb-2">
+                  <span className="font-medium text-foreground text-sm lg:text-base">{lead.phone}</span>
+                  <span className="text-[10px] lg:text-xs text-muted-foreground">{lead.time}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   {lead.hasPhoto && (
-                    <Image className="w-4 h-4 text-muted-foreground" />
+                    <Image className="w-3 h-3 lg:w-4 lg:h-4 text-muted-foreground" />
                   )}
-                  <span className={`status-badge ${
+                  <span className={`status-badge text-[10px] lg:text-xs ${
                     lead.status === "pending" ? "status-pending" : "status-success"
                   }`}>
                     {lead.status === "pending" ? "PENDENTE" : "FINALIZADO"}
@@ -107,28 +107,28 @@ export default function Atendimento() {
         </div>
 
         {/* Try-On Studio */}
-        <div className="col-span-9 bg-card border border-border rounded-xl overflow-hidden flex flex-col">
+        <div className="lg:col-span-9 bg-card border border-border rounded-xl overflow-hidden flex flex-col flex-1">
           {/* Header */}
-          <div className="p-6 border-b border-border">
-            <h1 className="text-2xl title-display text-foreground">
+          <div className="p-4 lg:p-6 border-b border-border">
+            <h1 className="text-xl lg:text-2xl title-display text-foreground">
               TRY-ON <span className="text-primary">STUDIO</span>
             </h1>
             {selectedLead && (
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-xs lg:text-sm text-muted-foreground mt-1">
                 Lead ID: {selectedLead.id}
               </p>
             )}
           </div>
 
           {/* Content */}
-          <div className="flex-1 p-6 flex gap-6">
+          <div className="flex-1 p-4 lg:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6 overflow-y-auto">
             {/* Client Photo Section */}
-            <div className="flex-1 flex flex-col">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
+            <div className="flex-1 flex flex-col min-h-[200px] lg:min-h-0">
+              <h3 className="text-[10px] lg:text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 lg:mb-4">
                 1. FOTO DO CLIENTE
               </h3>
               
-              <div className="flex-1 border-2 border-dashed border-border rounded-xl flex items-center justify-center relative overflow-hidden hover:border-primary/50 transition-colors">
+              <div className="flex-1 border-2 border-dashed border-border rounded-xl flex items-center justify-center relative overflow-hidden hover:border-primary/50 transition-colors min-h-[180px]">
                 {resultImage ? (
                   <div className="relative w-full h-full">
                     <img
@@ -136,9 +136,9 @@ export default function Atendimento() {
                       alt="Resultado"
                       className="w-full h-full object-contain"
                     />
-                    <div className="absolute top-4 right-4 flex items-center gap-2 bg-success/90 text-success-foreground px-3 py-1.5 rounded-full">
-                      <Check className="w-4 h-4" />
-                      <span className="text-xs font-semibold">Try-On Completo</span>
+                    <div className="absolute top-2 right-2 lg:top-4 lg:right-4 flex items-center gap-1 lg:gap-2 bg-success/90 text-success-foreground px-2 lg:px-3 py-1 lg:py-1.5 rounded-full">
+                      <Check className="w-3 h-3 lg:w-4 lg:h-4" />
+                      <span className="text-[10px] lg:text-xs font-semibold">Try-On Completo</span>
                     </div>
                   </div>
                 ) : clientPhoto ? (
@@ -148,11 +148,11 @@ export default function Atendimento() {
                     className="w-full h-full object-contain"
                   />
                 ) : (
-                  <label className="cursor-pointer flex flex-col items-center gap-3 p-8">
-                    <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                      <Upload className="w-8 h-8 text-muted-foreground" />
+                  <label className="cursor-pointer flex flex-col items-center gap-2 lg:gap-3 p-4 lg:p-8">
+                    <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-full bg-muted flex items-center justify-center">
+                      <Upload className="w-6 h-6 lg:w-8 lg:h-8 text-muted-foreground" />
                     </div>
-                    <span className="text-muted-foreground">Upload Foto</span>
+                    <span className="text-muted-foreground text-sm lg:text-base">Upload Foto</span>
                     <input
                       type="file"
                       accept="image/*"
@@ -165,12 +165,12 @@ export default function Atendimento() {
             </div>
 
             {/* Product Selection */}
-            <div className="w-72 flex flex-col">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
+            <div className="w-full lg:w-72 flex flex-col">
+              <h3 className="text-[10px] lg:text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 lg:mb-4">
                 2. ESCOLHER ROUPA
               </h3>
               
-              <div className="flex-1 space-y-3 overflow-y-auto">
+              <div className="flex-1 space-y-2 lg:space-y-3 overflow-y-auto max-h-48 lg:max-h-none">
                 {mockProducts.map((product) => (
                   <button
                     key={product.id}
@@ -178,20 +178,20 @@ export default function Atendimento() {
                       setSelectedProduct(product);
                       setResultImage(null);
                     }}
-                    className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                    className={`w-full flex items-center gap-2 lg:gap-3 p-2 lg:p-3 rounded-xl border transition-all ${
                       selectedProduct?.id === product.id
                         ? "border-primary bg-primary/10"
                         : "border-border hover:border-primary/50 bg-muted/30"
                     }`}
                   >
-                    <div className="w-14 h-14 rounded-lg bg-muted overflow-hidden flex-shrink-0">
+                    <div className="w-10 h-10 lg:w-14 lg:h-14 rounded-lg bg-muted overflow-hidden flex-shrink-0">
                       <img
                         src={product.image}
                         alt={product.name}
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    <span className="font-medium text-foreground text-left">
+                    <span className="font-medium text-foreground text-left text-sm lg:text-base">
                       {product.name}
                     </span>
                   </button>
@@ -202,13 +202,13 @@ export default function Atendimento() {
               <Button
                 onClick={handleGenerate}
                 disabled={!canGenerate}
-                className={`mt-4 w-full py-6 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${
+                className={`mt-3 lg:mt-4 w-full py-4 lg:py-6 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all text-sm lg:text-base ${
                   canGenerate
                     ? "btn-lime"
                     : "bg-muted text-muted-foreground cursor-not-allowed"
                 }`}
               >
-                <Sparkles className="w-5 h-5" />
+                <Sparkles className="w-4 h-4 lg:w-5 lg:h-5" />
                 GERAR RESULTADO
               </Button>
             </div>
