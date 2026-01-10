@@ -9,6 +9,7 @@ import {
   ChevronRight,
   User,
 } from "lucide-react";
+import cabeproLogo from "@/assets/cabepro-logo.png";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/AuthContext";
@@ -42,15 +43,11 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
       <aside className={`fixed left-0 top-0 h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300 z-50 md:z-auto ${collapsed ? 'w-14' : 'w-48'}`}>
         {/* Logo */}
         <div className={`p-4 flex items-center ${collapsed ? 'justify-center' : 'gap-2'}`}>
-          <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
-            <span className="text-primary-foreground font-bold text-xs">FV</span>
-          </div>
-          {!collapsed && (
-            <div className="flex items-baseline gap-1">
-              <span className="font-bold text-foreground text-sm">FitVibe</span>
-              <span className="text-[10px] text-muted-foreground">B2B</span>
-            </div>
-          )}
+          <img 
+            src={cabeproLogo} 
+            alt="CabePro" 
+            className={`${collapsed ? 'h-7 w-auto' : 'h-8 w-auto'} object-contain`}
+          />
         </div>
 
         {/* Toggle Button */}
