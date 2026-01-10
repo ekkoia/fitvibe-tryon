@@ -40,7 +40,7 @@ serve(async (req) => {
     const clothingData = cleanBase64(clothingImage);
 
     // High-fidelity prompt calibrated for fitness virtual try-on (original calibrated prompt)
-    const prompt = `
+    const synthesisPrompt = `
       CONTEXT: High-end virtual try-on for professional fitness e-commerce.
       
       TASK: Synthesize a photo of the person in IMAGE 1 wearing the EXACT garment from IMAGE 2.
@@ -52,6 +52,21 @@ serve(async (req) => {
       4. CLEANLINESS: Seamlessly remove the old clothing. Edges where skin meets fabric must be photorealistic.
       
       OUTPUT: Return ONLY the raw base64 data of the resulting image. No markdown, no text.
+    `;
+
+    // Prompt for generating dynamic description
+    const descriptionPrompt = `
+      Analyze IMAGE 2 (the garment) and generate a SHORT, objective description (max 25 words) in Portuguese (Brazil) describing how the synthesis was done.
+      
+      Focus on:
+      - The main colors of the garment
+      - Any patterns, logos or textures transferred
+      - How the fabric adapts to the body
+      
+      Format: Start with the main characteristic, mention the color precision, and end with a technical detail about the fit.
+      Example: "O top esportivo azul royal foi transferido com precisão, preservando o logo e adaptando-se às curvas do corpo."
+      
+      OUTPUT: Return ONLY the description text in Portuguese. No quotes, no markdown.
     `;
 
     console.log("Calling Lovable AI for try-on synthesis...");
@@ -72,7 +87,7 @@ serve(async (req) => {
               {
                 role: "user",
                 content: [
-                  { type: "text", text: prompt },
+                  { type: "text", text: synthesisPrompt },
                   {
                     type: "image_url",
                     image_url: { url: `data:image/jpeg;base64,${clientData}` }
@@ -142,9 +157,49 @@ serve(async (req) => {
         const generatedImage = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
         if (generatedImage) {
-          console.log("Successfully generated try-on image");
+          console.log("Successfully generated try-on image, now generating description...");
+          
+          // Generate dynamic description based on the clothing image
+          let description = "As estampas e cores foram transferidas com precisão cromática, adaptando-se às dobras e luz do corpo.";
+          
+          try {
+            const descResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${LOVABLE_API_KEY}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                model: "google/gemini-2.5-flash",
+                messages: [
+                  {
+                    role: "user",
+                    content: [
+                      { type: "text", text: descriptionPrompt },
+                      {
+                        type: "image_url",
+                        image_url: { url: `data:image/jpeg;base64,${clothingData}` }
+                      }
+                    ]
+                  }
+                ]
+              }),
+            });
+            
+            if (descResponse.ok) {
+              const descData = await descResponse.json();
+              const generatedDesc = descData.choices?.[0]?.message?.content;
+              if (generatedDesc && generatedDesc.trim().length > 10) {
+                description = generatedDesc.trim();
+                console.log("Generated description:", description);
+              }
+            }
+          } catch (descError) {
+            console.warn("Failed to generate description, using default:", descError);
+          }
+          
           return new Response(
-            JSON.stringify({ resultImage: generatedImage }),
+            JSON.stringify({ resultImage: generatedImage, description }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
