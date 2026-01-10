@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { MessageSquare, Upload, Image, Sparkles, Check } from "lucide-react";
+import { useState, useEffect } from "react";
+import { MessageSquare, Upload, Image, Sparkles, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProcessingModal } from "@/components/tryon/ProcessingModal";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,18 +16,12 @@ interface Lead {
 interface Product {
   id: string;
   name: string;
-  image: string;
+  image_url: string | null;
 }
 
 const mockLeads: Lead[] = [
   { id: "r1", phone: "5511999998888", time: "11:14", status: "pending", hasPhoto: true },
   { id: "r2", phone: "5511988887777", time: "10:45", status: "completed", hasPhoto: true },
-];
-
-const mockProducts: Product[] = [
-  { id: "1", name: "Legging Glow Black", image: "/placeholder.svg" },
-  { id: "2", name: "Top Neon Support", image: "/placeholder.svg" },
-  { id: "3", name: "Conjunto Compression Pro", image: "/placeholder.svg" },
 ];
 
 export default function Atendimento() {
@@ -36,6 +30,30 @@ export default function Atendimento() {
   const [clientPhoto, setClientPhoto] = useState<string | null>(null);
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('id, name, image_url')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      toast.error('Erro ao carregar produtos');
+    } finally {
+      setIsLoadingProducts(false);
+    }
+  };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -55,9 +73,14 @@ export default function Atendimento() {
     setIsProcessing(true);
     
     try {
-      // Get the clothing image - for now using the product image
-      // In production, you'd have actual base64 images for products
-      const clothingImage = selectedProduct.image;
+      // Get the clothing image
+      const clothingImage = selectedProduct.image_url;
+      
+      if (!clothingImage) {
+        toast.error("Produto não possui imagem");
+        setIsProcessing(false);
+        return;
+      }
       
       // If product image is a URL, fetch and convert to base64
       let clothingBase64 = clothingImage;
@@ -100,7 +123,6 @@ export default function Atendimento() {
   };
 
   const handleProcessingComplete = () => {
-    // This is now handled by the async function
     setIsProcessing(false);
   };
 
@@ -216,31 +238,46 @@ export default function Atendimento() {
               </h3>
               
               <div className="flex-1 space-y-2 lg:space-y-3 overflow-y-auto max-h-48 lg:max-h-none">
-                {mockProducts.map((product) => (
-                  <button
-                    key={product.id}
-                    onClick={() => {
-                      setSelectedProduct(product);
-                      setResultImage(null);
-                    }}
-                    className={`w-full flex items-center gap-2 lg:gap-3 p-2 lg:p-3 rounded-xl border transition-all ${
-                      selectedProduct?.id === product.id
-                        ? "border-primary bg-primary/10"
-                        : "border-border hover:border-primary/50 bg-muted/30"
-                    }`}
-                  >
-                    <div className="w-10 h-10 lg:w-14 lg:h-14 rounded-lg bg-muted overflow-hidden flex-shrink-0">
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <span className="font-medium text-foreground text-left text-sm lg:text-base">
-                      {product.name}
-                    </span>
-                  </button>
-                ))}
+                {isLoadingProducts ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                  </div>
+                ) : products.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-sm text-muted-foreground">
+                      Nenhum produto cadastrado.
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Adicione produtos na página Produtos.
+                    </p>
+                  </div>
+                ) : (
+                  products.map((product) => (
+                    <button
+                      key={product.id}
+                      onClick={() => {
+                        setSelectedProduct(product);
+                        setResultImage(null);
+                      }}
+                      className={`w-full flex items-center gap-2 lg:gap-3 p-2 lg:p-3 rounded-xl border transition-all ${
+                        selectedProduct?.id === product.id
+                          ? "border-primary bg-primary/10"
+                          : "border-border hover:border-primary/50 bg-muted/30"
+                      }`}
+                    >
+                      <div className="w-10 h-10 lg:w-14 lg:h-14 rounded-lg bg-muted overflow-hidden flex-shrink-0">
+                        <img
+                          src={product.image_url || "/placeholder.svg"}
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <span className="font-medium text-foreground text-left text-sm lg:text-base">
+                        {product.name}
+                      </span>
+                    </button>
+                  ))
+                )}
               </div>
 
               {/* Generate Button */}
