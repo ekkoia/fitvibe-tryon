@@ -18,8 +18,8 @@ export function AppLayout({ children }: AppLayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="ml-56 pt-14 min-h-screen flex justify-center">
-        <div className="p-8 w-full max-w-7xl">
+      <main className="ml-52 pt-12 min-h-screen flex justify-center">
+        <div className="p-6 w-full max-w-6xl">
           {children}
         </div>
       </main>
