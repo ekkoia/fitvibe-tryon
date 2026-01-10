@@ -29,6 +29,7 @@ export default function Atendimento() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [clientPhoto, setClientPhoto] = useState<string | null>(null);
   const [resultImage, setResultImage] = useState<string | null>(null);
+  const [resultDescription, setResultDescription] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
@@ -108,6 +109,7 @@ export default function Atendimento() {
 
       if (data?.resultImage) {
         setResultImage(data.resultImage);
+        setResultDescription(data.description || null);
         toast.success("Try-on gerado com sucesso!");
       } else if (data?.error) {
         toast.error(data.error);
@@ -126,6 +128,7 @@ export default function Atendimento() {
 
   const handleNewSimulation = () => {
     setResultImage(null);
+    setResultDescription(null);
     setSelectedProduct(null);
     // Keep clientPhoto so user doesn't need to upload again
   };
@@ -259,9 +262,7 @@ export default function Atendimento() {
                         SÍNTESE <span className="text-primary">REALISTA</span>
                       </h2>
                       <p className="text-sm text-muted-foreground mt-2">
-                        As estampas e cores foram transferidas com{" "}
-                        <span className="text-primary font-medium">precisão cromática</span>, 
-                        adaptando-se às dobras e luz do corpo.
+                        {resultDescription || "As estampas e cores foram transferidas com precisão cromática, adaptando-se às dobras e luz do corpo."}
                       </p>
                     </div>
 
