@@ -3,11 +3,14 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { AppLayout } from "./components/layout/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import Produtos from "./pages/Produtos";
 import Atendimento from "./pages/Atendimento";
 import Analytics from "./pages/Analytics";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -18,13 +21,44 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<AppLayout><Dashboard /></AppLayout>} />
-          <Route path="/produtos" element={<AppLayout><Produtos /></AppLayout>} />
-          <Route path="/atendimento" element={<AppLayout><Atendimento /></AppLayout>} />
-          <Route path="/analytics" element={<AppLayout><Analytics /></AppLayout>} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <AppLayout><Dashboard /></AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/produtos"
+              element={
+                <ProtectedRoute>
+                  <AppLayout><Produtos /></AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/atendimento"
+              element={
+                <ProtectedRoute>
+                  <AppLayout><Atendimento /></AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/analytics"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AppLayout><Analytics /></AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
