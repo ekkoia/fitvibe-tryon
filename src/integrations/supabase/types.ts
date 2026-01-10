@@ -14,6 +14,83 @@ export type Database = {
   }
   public: {
     Tables: {
+      credit_transactions: {
+        Row: {
+          created_at: string
+          credit_type: string
+          credits_after: number
+          credits_before: number
+          credits_change: number
+          description: string | null
+          id: string
+          metadata: Json | null
+          store_id: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          credit_type?: string
+          credits_after: number
+          credits_before: number
+          credits_change: number
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          store_id: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          credit_type?: string
+          credits_after?: number
+          credits_before?: number
+          credits_change?: number
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          store_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_transactions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plans: {
+        Row: {
+          active: boolean | null
+          created_at: string
+          credits_per_month: number
+          features: Json | null
+          id: string
+          name: string
+          price: number
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string
+          credits_per_month: number
+          features?: Json | null
+          id: string
+          name: string
+          price: number
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string
+          credits_per_month?: number
+          features?: Json | null
+          id?: string
+          name?: string
+          price?: number
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           category: string
@@ -101,34 +178,52 @@ export type Database = {
       }
       stores: {
         Row: {
+          auto_renew: boolean | null
           created_at: string
+          extra_credits: number | null
           id: string
           name: string
           plan: string
+          plan_credits: number | null
+          plan_renews_at: string | null
+          plan_started_at: string | null
           slug: string
           status: string
+          trial_ends_at: string | null
           tryons_limit: number
           tryons_used: number
           updated_at: string
         }
         Insert: {
+          auto_renew?: boolean | null
           created_at?: string
+          extra_credits?: number | null
           id?: string
           name: string
           plan?: string
+          plan_credits?: number | null
+          plan_renews_at?: string | null
+          plan_started_at?: string | null
           slug: string
           status?: string
+          trial_ends_at?: string | null
           tryons_limit?: number
           tryons_used?: number
           updated_at?: string
         }
         Update: {
+          auto_renew?: boolean | null
           created_at?: string
+          extra_credits?: number | null
           id?: string
           name?: string
           plan?: string
+          plan_credits?: number | null
+          plan_renews_at?: string | null
+          plan_started_at?: string | null
           slug?: string
           status?: string
+          trial_ends_at?: string | null
           tryons_limit?: number
           tryons_used?: number
           updated_at?: string
@@ -161,6 +256,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_generate_tryon: { Args: { p_store_id: string }; Returns: Json }
+      consume_credit: { Args: { p_store_id: string }; Returns: Json }
       get_user_store_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {

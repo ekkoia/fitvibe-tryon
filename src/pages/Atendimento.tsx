@@ -2,8 +2,12 @@ import { useState, useEffect } from "react";
 import { MessageSquare, Upload, Image, Sparkles, Check, Loader2, Download, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProcessingModal } from "@/components/tryon/ProcessingModal";
+import { BlockedScreen } from "@/components/credits/BlockedScreen";
+import { CreditWidget } from "@/components/credits/CreditWidget";
+import { useCredits } from "@/hooks/useCredits";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 interface Lead {
   id: string;
@@ -25,6 +29,9 @@ const mockLeads: Lead[] = [
 ];
 
 export default function Atendimento() {
+  const navigate = useNavigate();
+  const { isBlocked, blockReason, canGenerateTryOn, consumeCredit, refetch: refetchCredits } = useCredits();
+  
   const [selectedLead, setSelectedLead] = useState<Lead | null>(mockLeads[0]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [clientPhoto, setClientPhoto] = useState<string | null>(null);
@@ -72,6 +79,19 @@ export default function Atendimento() {
   const handleGenerate = async () => {
     if (!clientPhoto || !selectedProduct) return;
     
+    // Check if user can generate try-on
+    const check = await canGenerateTryOn();
+    if (!check.allowed) {
+      if (check.reason === "TRIAL_EXPIRED") {
+        toast.error("Seu trial expirou. Escolha um plano para continuar.");
+      } else if (check.reason === "NO_CREDITS") {
+        toast.error("Você não tem créditos suficientes.");
+      } else {
+        toast.error("Não foi possível verificar seus créditos.");
+      }
+      return;
+    }
+    
     setIsProcessing(true);
     setIsFinalizing(false);
     
@@ -111,10 +131,19 @@ export default function Atendimento() {
       }
 
       if (data?.resultImage) {
+        // Consume credit after successful generation
+        const consumeResult = await consumeCredit();
+        if (!consumeResult.success) {
+          console.warn("Failed to consume credit:", consumeResult.error);
+        }
+        
         setResultImage(data.resultImage);
         setResultDescription(data.description || null);
         setIsFinalizing(false);
         toast.success("Try-on gerado com sucesso!");
+        
+        // Refetch credits to update UI
+        refetchCredits();
       } else if (data?.error) {
         setIsFinalizing(false);
         toast.error(data.error);
@@ -154,7 +183,20 @@ export default function Atendimento() {
     toast.success("Imagem salva com sucesso!");
   };
 
-  const canGenerate = clientPhoto && selectedProduct && !resultImage;
+  const canGenerate = clientPhoto && selectedProduct && !resultImage && !isBlocked;
+
+  // Show blocked screen if user cannot generate try-ons
+  if (isBlocked && blockReason) {
+    return (
+      <div className="animate-fade-in">
+        <BlockedScreen
+          reason={blockReason}
+          onViewPlans={() => navigate("/billing/plans")}
+          onBuyCredits={() => navigate("/billing/plans")}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="animate-fade-in min-h-[calc(100vh-7rem)]">
