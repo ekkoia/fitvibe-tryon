@@ -46,7 +46,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
           <img 
             src={cabeproLogo} 
             alt="CABEPRO" 
-            className={`object-contain ${collapsed ? 'h-6 w-6' : 'h-8 max-w-[140px]'}`}
+            className={`object-contain ${collapsed ? 'h-8 w-8' : 'h-10 w-full'}`}
           />
         </div>
 
