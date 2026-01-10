@@ -182,7 +182,7 @@ export default function Atendimento() {
               >
                 {/* Phone + Time */}
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-semibold text-[#f5a623] text-sm lg:text-base">{lead.phone}</span>
+                  <span className="font-semibold text-foreground text-sm lg:text-base">{lead.phone}</span>
                   <span className="text-[10px] lg:text-xs text-muted-foreground">{lead.time}</span>
                 </div>
                 {/* Icon + Status */}
