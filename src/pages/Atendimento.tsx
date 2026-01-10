@@ -178,8 +178,14 @@ export default function Atendimento() {
               <button
                 key={lead.id}
                 onClick={() => setSelectedLead(lead)}
-                className="w-full p-3 lg:p-4 border-b border-border text-left transition-colors hover:bg-muted/30"
+                className={`w-full p-3 lg:p-4 border-b border-border text-left transition-colors hover:bg-muted/30 relative ${
+                  selectedLead?.id === lead.id ? "bg-muted/20" : ""
+                }`}
               >
+                {/* Selection indicator bar */}
+                {selectedLead?.id === lead.id && (
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />
+                )}
                 {/* Phone + Time */}
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-semibold text-foreground text-sm lg:text-base">{lead.phone}</span>
