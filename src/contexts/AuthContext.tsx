@@ -19,6 +19,9 @@ interface Profile {
   store_id: string | null;
   full_name: string | null;
   avatar_url: string | null;
+  cpf: string | null;
+  cnpj: string | null;
+  phone: string | null;
 }
 
 interface AuthContextType {
@@ -29,7 +32,7 @@ interface AuthContextType {
   roles: AppRole[];
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string, storeName: string, fullName: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, storeName: string, fullName: string, cpf: string, cnpj: string, phone: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   hasRole: (role: AppRole) => boolean;
   isAdmin: () => boolean;
@@ -133,7 +136,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error as Error | null };
   };
 
-  const signUp = async (email: string, password: string, storeName: string, fullName: string) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    storeName: string,
+    fullName: string,
+    cpf: string,
+    cnpj: string,
+    phone: string
+  ) => {
     const redirectUrl = `${window.location.origin}/`;
     
     const { error } = await supabase.auth.signUp({
@@ -145,6 +156,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           store_name: storeName,
           store_slug: storeName.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
           full_name: fullName,
+          cpf,
+          cnpj,
+          phone,
         },
       },
     });
