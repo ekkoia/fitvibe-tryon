@@ -2,6 +2,8 @@ import { useState } from "react";
 import { MessageSquare, Upload, Image, Sparkles, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProcessingModal } from "@/components/tryon/ProcessingModal";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface Lead {
   id: string;
@@ -47,16 +49,59 @@ export default function Atendimento() {
     }
   };
 
-  const handleGenerate = () => {
-    if (clientPhoto && selectedProduct) {
-      setIsProcessing(true);
+  const handleGenerate = async () => {
+    if (!clientPhoto || !selectedProduct) return;
+    
+    setIsProcessing(true);
+    
+    try {
+      // Get the clothing image - for now using the product image
+      // In production, you'd have actual base64 images for products
+      const clothingImage = selectedProduct.image;
+      
+      // If product image is a URL, fetch and convert to base64
+      let clothingBase64 = clothingImage;
+      if (clothingImage.startsWith('/') || clothingImage.startsWith('http')) {
+        const response = await fetch(clothingImage);
+        const blob = await response.blob();
+        clothingBase64 = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(blob);
+        });
+      }
+
+      const { data, error } = await supabase.functions.invoke('tryon', {
+        body: { 
+          clientImage: clientPhoto, 
+          clothingImage: clothingBase64 
+        }
+      });
+
+      if (error) {
+        console.error("Try-on error:", error);
+        toast.error(error.message || "Erro ao gerar try-on");
+        setIsProcessing(false);
+        return;
+      }
+
+      if (data?.resultImage) {
+        setResultImage(data.resultImage);
+        toast.success("Try-on gerado com sucesso!");
+      } else if (data?.error) {
+        toast.error(data.error);
+      }
+    } catch (err) {
+      console.error("Try-on error:", err);
+      toast.error("Erro ao conectar com o serviço de IA");
+    } finally {
+      setIsProcessing(false);
     }
   };
 
   const handleProcessingComplete = () => {
+    // This is now handled by the async function
     setIsProcessing(false);
-    // Simulate a result - in real app this would come from AI
-    setResultImage(clientPhoto);
   };
 
   const canGenerate = clientPhoto && selectedProduct;
