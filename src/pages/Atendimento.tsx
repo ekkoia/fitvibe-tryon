@@ -31,6 +31,7 @@ export default function Atendimento() {
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [resultDescription, setResultDescription] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isWaitingResult, setIsWaitingResult] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
 
@@ -119,11 +120,13 @@ export default function Atendimento() {
       toast.error("Erro ao conectar com o serviço de IA");
     } finally {
       setIsProcessing(false);
+      setIsWaitingResult(false);
     }
   };
 
-  const handleProcessingComplete = () => {
-    setIsProcessing(false);
+  const handleStepsComplete = () => {
+    // Steps animation finished, now we're waiting for the actual API result
+    setIsWaitingResult(true);
   };
 
   const handleNewSimulation = () => {
@@ -378,7 +381,8 @@ export default function Atendimento() {
       {/* Processing Modal */}
       <ProcessingModal 
         isOpen={isProcessing} 
-        onComplete={handleProcessingComplete} 
+        isWaitingResult={isWaitingResult}
+        onStepsComplete={handleStepsComplete} 
       />
     </div>
   );
