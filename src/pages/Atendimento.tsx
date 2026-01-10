@@ -167,7 +167,7 @@ export default function Atendimento() {
               <MessageSquare className="w-4 h-4 lg:w-5 lg:h-5 text-muted-foreground" />
               <span className="font-semibold text-foreground text-sm lg:text-base">INBOX LEADS</span>
             </div>
-            <button className="px-3 lg:px-4 py-1.5 border border-primary text-primary text-[10px] lg:text-xs font-semibold rounded-full hover:bg-primary/10 transition-colors">
+            <button className="px-3 lg:px-4 py-1.5 bg-primary text-primary-foreground text-[10px] lg:text-xs font-semibold rounded-full hover:bg-primary/90 transition-colors">
               NOVO LEAD
             </button>
           </div>
@@ -178,15 +178,11 @@ export default function Atendimento() {
               <button
                 key={lead.id}
                 onClick={() => setSelectedLead(lead)}
-                className={`w-full p-3 lg:p-4 border-b border-border text-left transition-colors ${
-                  selectedLead?.id === lead.id 
-                    ? "bg-background" 
-                    : "hover:bg-background/50"
-                }`}
+                className="w-full p-3 lg:p-4 border-b border-border text-left transition-colors hover:bg-muted/30"
               >
                 {/* Phone + Time */}
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-semibold text-primary text-sm lg:text-base">{lead.phone}</span>
+                  <span className="font-semibold text-[#f5a623] text-sm lg:text-base">{lead.phone}</span>
                   <span className="text-[10px] lg:text-xs text-muted-foreground">{lead.time}</span>
                 </div>
                 {/* Icon + Status */}
