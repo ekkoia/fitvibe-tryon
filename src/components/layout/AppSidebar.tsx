@@ -7,6 +7,7 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  User,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -17,6 +18,7 @@ const navItems = [
   { icon: ShoppingBag, label: "Produtos", path: "/produtos" },
   { icon: MessageSquare, label: "Atendimento", path: "/atendimento" },
   { icon: BarChart3, label: "Analytics", path: "/analytics" },
+  { icon: User, label: "Meu Perfil", path: "/perfil" },
 ];
 
 interface AppSidebarProps {

@@ -231,6 +231,14 @@ export default function Auth() {
                       "Entrar"
                     )}
                   </Button>
+                  <div className="text-center">
+                    <a 
+                      href="/esqueci-senha" 
+                      className="text-sm text-primary hover:underline"
+                    >
+                      Esqueci minha senha
+                    </a>
+                  </div>
                 </form>
               </TabsContent>
 
