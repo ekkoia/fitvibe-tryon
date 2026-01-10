@@ -32,7 +32,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 
   return (
     <TooltipProvider delayDuration={0}>
-      <aside className={`fixed left-0 top-0 h-screen ${collapsed ? 'w-14' : 'w-48'} bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300`}>
+      <aside className={`fixed left-0 top-0 h-screen ${collapsed ? 'w-14' : 'w-48'} bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300 z-50 md:z-auto`}>
         {/* Logo */}
         <div className={`p-4 flex items-center ${collapsed ? 'justify-center' : 'gap-2'}`}>
           <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
