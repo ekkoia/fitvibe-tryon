@@ -12,6 +12,11 @@ interface Store {
   tryons_limit: number;
   tryons_used: number;
   status: string;
+  plan_credits: number;
+  extra_credits: number;
+  trial_ends_at: string | null;
+  plan_renews_at: string | null;
+  auto_renew: boolean;
 }
 
 interface Profile {

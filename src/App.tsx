@@ -11,6 +11,7 @@ import Produtos from "./pages/Produtos";
 import Atendimento from "./pages/Atendimento";
 import Analytics from "./pages/Analytics";
 import Perfil from "./pages/Perfil";
+import BillingPlans from "./pages/BillingPlans";
 import Auth from "./pages/Auth";
 import EsqueciSenha from "./pages/EsqueciSenha";
 import RedefinirSenha from "./pages/RedefinirSenha";
@@ -66,6 +67,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AppLayout><Perfil /></AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/billing/plans"
+              element={
+                <ProtectedRoute>
+                  <AppLayout><BillingPlans /></AppLayout>
                 </ProtectedRoute>
               }
             />

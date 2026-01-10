@@ -1,31 +1,8 @@
 import { Zap, CreditCard, TrendingUp, Users, BarChart3 } from "lucide-react";
-
-const metrics = [
-  { 
-    icon: Zap, 
-    label: "TOTAL TRY-ONS", 
-    value: "124",
-    trend: "+12%"
-  },
-  { 
-    icon: CreditCard, 
-    label: "CREDITS LEFT", 
-    value: "376",
-    trend: null
-  },
-  { 
-    icon: TrendingUp, 
-    label: "SUCCESS RATE", 
-    value: "98.2%",
-    trend: "+2.1%"
-  },
-  { 
-    icon: Users, 
-    label: "AVG RESPONSE", 
-    value: "12s",
-    trend: "-3s"
-  },
-];
+import { CreditWidget } from "@/components/credits/CreditWidget";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCredits } from "@/hooks/useCredits";
+import { useNavigate } from "react-router-dom";
 
 const recentActivity = [
   { id: "#4821", device: "MOBILE DEVICE", location: "SÃO PAULO", status: "FINALIZADO" },
@@ -34,6 +11,37 @@ const recentActivity = [
 ];
 
 export default function Dashboard() {
+  const navigate = useNavigate();
+  const { store } = useAuth();
+  const { totalCredits, planCredits, extraCredits, plan } = useCredits();
+
+  const metrics = [
+    { 
+      icon: Zap, 
+      label: "TOTAL TRY-ONS", 
+      value: store?.tryons_used?.toString() || "0",
+      trend: null
+    },
+    { 
+      icon: CreditCard, 
+      label: "CRÉDITOS", 
+      value: totalCredits.toString(),
+      trend: null
+    },
+    { 
+      icon: TrendingUp, 
+      label: "PLANO/EXTRAS", 
+      value: `${planCredits}/${extraCredits}`,
+      trend: null
+    },
+    { 
+      icon: Users, 
+      label: "PLANO ATUAL", 
+      value: plan === "trial" ? "Trial" : plan === "starter" ? "Starter" : plan === "growth" ? "Growth" : "Pro",
+      trend: null
+    },
+  ];
+
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
@@ -119,23 +127,8 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Upgrade Card */}
-        <div className="bg-primary rounded-xl p-6 flex flex-col justify-between glow-lime">
-          <div>
-            <div className="w-12 h-12 rounded-xl bg-primary-foreground/10 flex items-center justify-center mb-4">
-              <BarChart3 className="w-6 h-6 text-primary-foreground" />
-            </div>
-            <h3 className="text-lg title-display text-primary-foreground mb-2">
-              ESCALA GLOBAL
-            </h3>
-            <p className="text-primary-foreground/70 text-xs">
-              Inicie agora sua jornada no provador virtual.
-            </p>
-          </div>
-          <button className="mt-6 w-full bg-primary-foreground text-primary font-semibold py-2.5 rounded-lg hover:bg-primary-foreground/90 transition-colors text-sm">
-            UPGRADE PRO
-          </button>
-        </div>
+        {/* Credit Widget */}
+        <CreditWidget onBuyCredits={() => navigate("/billing/plans")} />
       </div>
     </div>
   );
