@@ -39,18 +39,20 @@ serve(async (req) => {
     const clientData = cleanBase64(clientImage);
     const clothingData = cleanBase64(clothingImage);
 
-    // High-fidelity prompt calibrated for fitness virtual try-on (original working prompt)
-    const prompt = `CONTEXT: High-end virtual try-on for professional fitness e-commerce.
+    // High-fidelity prompt calibrated for fitness virtual try-on (original calibrated prompt)
+    const prompt = `
+      CONTEXT: High-end virtual try-on for professional fitness e-commerce.
       
-TASK: Synthesize a photo of the person in IMAGE 1 wearing the EXACT garment from IMAGE 2.
-
-STRICT CONSTRAINTS:
-1. DESIGN FIDELITY: Transfer 100% of the colors, patterns, logos, and textures from IMAGE 2. Do not simplify or alter the pattern.
-2. ANATOMY: Keep the person's face, skin tone, hair, and body shape from IMAGE 1 identical.
-3. PHYSICS: Adapt the fabric to the person's pose, creating realistic compression wrinkles and highlights typical of sports fabrics (spandex/polyamide).
-4. CLEANLINESS: Seamlessly blend the garment onto the person. Edges where skin meets fabric must be photorealistic.
-
-OUTPUT: Generate a single photorealistic image showing the person wearing the exact garment.`;
+      TASK: Synthesize a photo of the person in IMAGE 1 wearing the EXACT garment from IMAGE 2.
+      
+      STRICT CONSTRAINTS:
+      1. DESIGN FIDELITY: Transfer 100% of the colors, patterns, logos, and textures from IMAGE 2. Do not simplify or alter the pattern.
+      2. ANATOMY: Keep the person's face, skin tone, hair, and body shape from IMAGE 1 identical.
+      3. PHYSICS: Adapt the fabric to the person's pose, creating realistic compression wrinkles and highlights typical of sports fabrics (spandex/polyamide).
+      4. CLEANLINESS: Seamlessly remove the old clothing. Edges where skin meets fabric must be photorealistic.
+      
+      OUTPUT: Return ONLY the raw base64 data of the resulting image. No markdown, no text.
+    `;
 
     console.log("Calling Lovable AI for try-on synthesis...");
 
