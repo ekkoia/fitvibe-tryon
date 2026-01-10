@@ -32,9 +32,8 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
   const { signOut } = useAuth();
   const { totalCredits, planName, planCredits, loading } = useCredits();
   
-  // Percentage based on credits used vs plan total
-  const creditsUsed = planCredits - totalCredits;
-  const percentage = planCredits > 0 ? Math.max(0, (totalCredits / planCredits) * 100) : 0;
+  // Percentage based on credits remaining vs plan total (capped at 100%)
+  const percentage = planCredits > 0 ? Math.min(100, Math.max(0, (totalCredits / planCredits) * 100)) : 0;
 
   return (
     <TooltipProvider delayDuration={0}>
