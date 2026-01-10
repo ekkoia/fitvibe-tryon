@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Plus, Search, MoreVertical, Tag } from "lucide-react";
+import { useState, useRef } from "react";
+import { Plus, Search, MoreVertical, Tag, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -40,6 +40,26 @@ export default function Produtos() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newProduct, setNewProduct] = useState({ name: "", category: "" });
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSelectedImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const clearSelectedImage = () => {
+    setSelectedImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   const filteredProducts = products.filter(p => 
     p.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -53,11 +73,15 @@ export default function Produtos() {
           id: Date.now().toString(),
           name: newProduct.name,
           category: newProduct.category,
-          image: "/placeholder.svg",
+          image: selectedImage || "/placeholder.svg",
           status: "active",
         },
       ]);
       setNewProduct({ name: "", category: "" });
+      setSelectedImage(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
       setIsDialogOpen(false);
     }
   };
@@ -119,14 +143,41 @@ export default function Produtos() {
               </div>
               <div>
                 <Label>Imagem do Produto</Label>
-                <div className="mt-1.5 border-2 border-dashed border-border rounded-xl p-6 sm:p-8 text-center hover:border-primary/50 transition-colors cursor-pointer">
-                  <div className="w-12 h-12 mx-auto rounded-full bg-muted flex items-center justify-center mb-3">
-                    <Plus className="w-6 h-6 text-muted-foreground" />
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImageSelect}
+                  accept="image/*"
+                  className="hidden"
+                />
+                {selectedImage ? (
+                  <div className="mt-1.5 relative rounded-xl overflow-hidden border border-border">
+                    <img
+                      src={selectedImage}
+                      alt="Preview"
+                      className="w-full h-48 object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={clearSelectedImage}
+                      className="absolute top-2 right-2 w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Clique para fazer upload
-                  </p>
-                </div>
+                ) : (
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className="mt-1.5 border-2 border-dashed border-border rounded-xl p-6 sm:p-8 text-center hover:border-primary/50 transition-colors cursor-pointer"
+                  >
+                    <div className="w-12 h-12 mx-auto rounded-full bg-muted flex items-center justify-center mb-3">
+                      <Upload className="w-6 h-6 text-muted-foreground" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Clique para fazer upload
+                    </p>
+                  </div>
+                )}
               </div>
               <Button onClick={handleAddProduct} className="btn-lime w-full">
                 Adicionar Produto
