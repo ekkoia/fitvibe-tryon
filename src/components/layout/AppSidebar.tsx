@@ -42,11 +42,11 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
     <TooltipProvider delayDuration={0}>
       <aside className={`fixed left-0 top-0 h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300 z-50 md:z-auto ${collapsed ? 'w-14' : 'w-48'}`}>
         {/* Logo */}
-        <div className={`py-4 px-3 flex items-center ${collapsed ? 'justify-center' : 'justify-start'}`}>
+        <div className={`py-4 px-2 flex items-center ${collapsed ? 'justify-center' : 'justify-start'}`}>
           <img 
             src={cabeproLogo} 
             alt="CabePro" 
-            className={`${collapsed ? 'h-10 w-auto' : 'h-14 w-auto'} object-contain`}
+            className={`${collapsed ? 'h-12 w-auto' : 'h-24 w-auto max-w-full'} object-contain`}
           />
         </div>
 
