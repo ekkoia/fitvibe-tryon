@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, 
@@ -11,6 +10,7 @@ import {
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
@@ -26,9 +26,11 @@ interface AppSidebarProps {
 
 export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
   const location = useLocation();
-  const [tryOnsUsed] = useState(124);
-  const [tryOnsTotal] = useState(500);
-  const percentage = (tryOnsUsed / tryOnsTotal) * 100;
+  const { store, signOut, isAdmin } = useAuth();
+  
+  const tryOnsUsed = store?.tryons_used ?? 0;
+  const tryOnsTotal = store?.tryons_limit ?? 10;
+  const percentage = tryOnsTotal > 0 ? (tryOnsUsed / tryOnsTotal) * 100 : 0;
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -140,14 +142,20 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
           {collapsed ? (
             <Tooltip>
               <TooltipTrigger asChild>
-                <button className="flex items-center justify-center px-3 py-2 w-full text-sidebar-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/30">
+                <button 
+                  onClick={signOut}
+                  className="flex items-center justify-center px-3 py-2 w-full text-sidebar-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/30"
+                >
                   <LogOut className="w-4 h-4" />
                 </button>
               </TooltipTrigger>
               <TooltipContent side="right">Sair</TooltipContent>
             </Tooltip>
           ) : (
-            <button className="flex items-center gap-2.5 px-3 py-2 w-full text-sidebar-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/30 text-sm">
+            <button 
+              onClick={signOut}
+              className="flex items-center gap-2.5 px-3 py-2 w-full text-sidebar-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/30 text-sm"
+            >
               <LogOut className="w-4 h-4" />
               <span>Sair</span>
             </button>
