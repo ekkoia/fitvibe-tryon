@@ -33,9 +33,10 @@ export function CreditWidget({ onBuyCredits, compact = false }: CreditWidgetProp
     );
   }
 
-  // Calculate usage percentage (for visual progress)
-  const maxCredits = plan === "trial" ? 50 : plan === "starter" ? 100 : plan === "growth" ? 300 : 800;
-  const usagePercent = Math.min(100, ((maxCredits - planCredits) / maxCredits) * 100);
+  // Get max credits for the plan (credits at start of period)
+  const maxPlanCredits = plan === "trial" ? 50 : plan === "starter" ? 100 : plan === "growth" ? 300 : 800;
+  // Remaining percentage: how much of total credits remain (capped at 100%)
+  const remainingPercent = Math.min(100, (totalCredits / maxPlanCredits) * 100);
   const isLowCredits = totalCredits <= 20 && totalCredits > 0;
 
   if (compact) {
@@ -82,11 +83,11 @@ export function CreditWidget({ onBuyCredits, compact = false }: CreditWidgetProp
         </div>
       </div>
 
-      {/* Progress bar */}
+      {/* Progress bar - shows remaining credits */}
       <div className="space-y-1">
-        <Progress value={100 - usagePercent} className="h-2" />
+        <Progress value={remainingPercent} className="h-2" />
         <p className="text-[10px] text-muted-foreground text-right">
-          {planCredits} de {maxCredits} do plano
+          {totalCredits} de {maxPlanCredits} créditos
         </p>
       </div>
 
