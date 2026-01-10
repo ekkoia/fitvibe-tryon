@@ -24,21 +24,21 @@ export function AppSidebar() {
   const percentage = (tryOnsUsed / tryOnsTotal) * 100;
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-56 bg-sidebar border-r border-sidebar-border flex flex-col">
+    <aside className="fixed left-0 top-0 h-screen w-52 bg-sidebar border-r border-sidebar-border flex flex-col">
       {/* Logo */}
-      <div className="p-6 flex items-center gap-2">
-        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-          <span className="text-primary-foreground font-bold text-sm">FV</span>
+      <div className="px-4 py-5 flex items-center gap-2">
+        <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
+          <span className="text-primary-foreground font-bold text-xs">FV</span>
         </div>
         <div className="flex items-baseline gap-1">
-          <span className="font-bold text-foreground">FitVibe</span>
-          <span className="text-xs text-muted-foreground">B2B</span>
+          <span className="font-bold text-sm text-foreground">FitVibe</span>
+          <span className="text-[10px] text-muted-foreground">B2B</span>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4">
-        <ul className="space-y-1">
+      <nav className="flex-1 px-2 py-2">
+        <ul className="space-y-0.5">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             const Icon = item.icon;
@@ -47,13 +47,13 @@ export function AppSidebar() {
               <li key={item.path}>
                 <Link
                   to={item.path}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
                     isActive
                       ? "bg-primary text-primary-foreground font-medium"
                       : "text-sidebar-foreground hover:text-foreground hover:bg-muted/50"
                   }`}
                 >
-                  <Icon className="w-5 h-5" />
+                  <Icon className="w-4 h-4" />
                   <span>{item.label}</span>
                 </Link>
               </li>
@@ -63,28 +63,28 @@ export function AppSidebar() {
       </nav>
 
       {/* Plan Status */}
-      <div className="p-4 mx-3 mb-3 bg-muted/30 rounded-xl border border-border">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+      <div className="p-3 mx-2 mb-2 bg-muted/30 rounded-lg border border-border">
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Plano Pro
           </span>
-          <Sparkles className="w-4 h-4 text-primary" />
+          <Sparkles className="w-3 h-3 text-primary" />
         </div>
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-foreground">
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-xs text-foreground">
             Try-ons: {tryOnsUsed}/{tryOnsTotal}
           </span>
-          <span className="text-sm font-semibold text-primary">
+          <span className="text-xs font-semibold text-primary">
             {Math.round(percentage)}%
           </span>
         </div>
-        <Progress value={percentage} className="h-1.5" />
+        <Progress value={percentage} className="h-1" />
       </div>
 
       {/* Logout */}
-      <div className="p-3 border-t border-sidebar-border">
-        <button className="flex items-center gap-3 px-4 py-3 w-full text-sidebar-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/30">
-          <LogOut className="w-5 h-5" />
+      <div className="p-2 border-t border-sidebar-border">
+        <button className="flex items-center gap-2 px-3 py-2 w-full text-sm text-sidebar-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/30">
+          <LogOut className="w-4 h-4" />
           <span>Sair</span>
         </button>
       </div>
