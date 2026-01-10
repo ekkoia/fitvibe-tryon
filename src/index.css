@@ -15,7 +15,7 @@
     --popover: 0 0% 8%;
     --popover-foreground: 0 0% 95%;
 
-    --primary: 86 100% 72%;
+    --primary: 78 85% 45%;
     --primary-foreground: 0 0% 5%;
 
     --secondary: 0 0% 12%;
@@ -24,7 +24,7 @@
     --muted: 0 0% 15%;
     --muted-foreground: 0 0% 55%;
 
-    --accent: 86 100% 72%;
+    --accent: 78 85% 45%;
     --accent-foreground: 0 0% 5%;
 
     --destructive: 0 84% 60%;
@@ -38,16 +38,16 @@
 
     --sidebar-background: 0 0% 7%;
     --sidebar-foreground: 0 0% 70%;
-    --sidebar-primary: 86 100% 72%;
+    --sidebar-primary: 78 85% 45%;
     --sidebar-primary-foreground: 0 0% 5%;
-    --sidebar-accent: 86 100% 72%;
+    --sidebar-accent: 78 85% 45%;
     --sidebar-accent-foreground: 0 0% 5%;
     --sidebar-border: 0 0% 12%;
-    --sidebar-ring: 86 100% 72%;
+    --sidebar-ring: 68 100% 50%;
 
     /* Custom FitVibe tokens */
-    --lime: 86 100% 72%;
-    --lime-glow: 86 100% 80%;
+    --lime: 78 85% 45%;
+    --lime-glow: 78 85% 55%;
     --success: 142 76% 36%;
     --warning: 38 92% 50%;
     --surface-elevated: 0 0% 10%;
@@ -60,27 +60,27 @@
     --card-foreground: 0 0% 95%;
     --popover: 0 0% 8%;
     --popover-foreground: 0 0% 95%;
-    --primary: 86 100% 72%;
+    --primary: 78 85% 45%;
     --primary-foreground: 0 0% 5%;
     --secondary: 0 0% 12%;
     --secondary-foreground: 0 0% 95%;
     --muted: 0 0% 15%;
     --muted-foreground: 0 0% 55%;
-    --accent: 86 100% 72%;
+    --accent: 78 85% 45%;
     --accent-foreground: 0 0% 5%;
     --destructive: 0 62% 30%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 15%;
     --input: 0 0% 15%;
-    --ring: 86 100% 72%;
+    --ring: 78 85% 45%;
     --sidebar-background: 0 0% 7%;
     --sidebar-foreground: 0 0% 70%;
-    --sidebar-primary: 86 100% 72%;
+    --sidebar-primary: 78 85% 45%;
     --sidebar-primary-foreground: 0 0% 5%;
-    --sidebar-accent: 86 100% 72%;
+    --sidebar-accent: 78 85% 45%;
     --sidebar-accent-foreground: 0 0% 5%;
     --sidebar-border: 0 0% 12%;
-    --sidebar-ring: 86 100% 72%;
+    --sidebar-ring: 78 85% 45%;
   }
 }
 
