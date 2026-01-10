@@ -11,18 +11,22 @@ import { Loader2, Sparkles } from "lucide-react";
 import { z } from "zod";
 import { maskCPF, maskCNPJ, maskPhone, isValidCPF, isValidCNPJ, isValidPhone, unmask } from "@/lib/masks";
 
+type DocumentType = "cpf" | "cnpj";
+
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
   password: z.string().min(6, "Senha deve ter no mínimo 6 caracteres"),
 });
 
-const signupSchema = z.object({
+const createSignupSchema = (documentType: DocumentType) => z.object({
   email: z.string().email("Email inválido"),
   password: z.string().min(6, "Senha deve ter no mínimo 6 caracteres"),
   storeName: z.string().min(2, "Nome da loja deve ter no mínimo 2 caracteres"),
   fullName: z.string().min(2, "Nome completo deve ter no mínimo 2 caracteres"),
-  cpf: z.string().refine((val) => isValidCPF(val), "CPF inválido"),
-  cnpj: z.string().refine((val) => isValidCNPJ(val), "CNPJ inválido"),
+  document: z.string().refine(
+    (val) => documentType === "cpf" ? isValidCPF(val) : isValidCNPJ(val),
+    documentType === "cpf" ? "CPF inválido" : "CNPJ inválido"
+  ),
   phone: z.string().refine((val) => isValidPhone(val), "Telefone inválido"),
 });
 
@@ -32,14 +36,14 @@ export default function Auth() {
   const { toast } = useToast();
   
   const [isLoading, setIsLoading] = useState(false);
+  const [documentType, setDocumentType] = useState<DocumentType>("cpf");
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [signupData, setSignupData] = useState({
     email: "",
     password: "",
     storeName: "",
     fullName: "",
-    cpf: "",
-    cnpj: "",
+    document: "",
     phone: "",
   });
 
@@ -91,6 +95,7 @@ export default function Auth() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    const signupSchema = createSignupSchema(documentType);
     const validation = signupSchema.safeParse(signupData);
     if (!validation.success) {
       toast({
@@ -102,13 +107,17 @@ export default function Auth() {
     }
 
     setIsLoading(true);
+    
+    const cpf = documentType === "cpf" ? unmask(signupData.document) : "";
+    const cnpj = documentType === "cnpj" ? unmask(signupData.document) : "";
+    
     const { error } = await signUp(
       signupData.email,
       signupData.password,
       signupData.storeName,
       signupData.fullName,
-      unmask(signupData.cpf),
-      unmask(signupData.cnpj),
+      cpf,
+      cnpj,
       unmask(signupData.phone)
     );
     setIsLoading(false);
@@ -135,12 +144,15 @@ export default function Auth() {
     navigate("/");
   };
 
-  const handleCPFChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSignupData({ ...signupData, cpf: maskCPF(e.target.value) });
+  const handleDocumentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const masked = documentType === "cpf" ? maskCPF(value) : maskCNPJ(value);
+    setSignupData({ ...signupData, document: masked });
   };
 
-  const handleCNPJChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSignupData({ ...signupData, cnpj: maskCNPJ(e.target.value) });
+  const handleDocumentTypeChange = (type: DocumentType) => {
+    setDocumentType(type);
+    setSignupData({ ...signupData, document: "" });
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -238,31 +250,41 @@ export default function Auth() {
                     />
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-cpf">CPF *</Label>
-                      <Input
-                        id="signup-cpf"
-                        type="text"
-                        placeholder="000.000.000-00"
-                        value={signupData.cpf}
-                        onChange={handleCPFChange}
-                        maxLength={14}
-                        required
-                      />
+                  <div className="space-y-2">
+                    <Label>Tipo de Documento *</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        type="button"
+                        variant={documentType === "cpf" ? "default" : "outline"}
+                        className={documentType === "cpf" ? "" : "border-border"}
+                        onClick={() => handleDocumentTypeChange("cpf")}
+                      >
+                        CPF (Pessoa Física)
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={documentType === "cnpj" ? "default" : "outline"}
+                        className={documentType === "cnpj" ? "" : "border-border"}
+                        onClick={() => handleDocumentTypeChange("cnpj")}
+                      >
+                        CNPJ (Empresa)
+                      </Button>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-cnpj">CNPJ *</Label>
-                      <Input
-                        id="signup-cnpj"
-                        type="text"
-                        placeholder="00.000.000/0000-00"
-                        value={signupData.cnpj}
-                        onChange={handleCNPJChange}
-                        maxLength={18}
-                        required
-                      />
-                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-document">
+                      {documentType === "cpf" ? "CPF" : "CNPJ"} *
+                    </Label>
+                    <Input
+                      id="signup-document"
+                      type="text"
+                      placeholder={documentType === "cpf" ? "000.000.000-00" : "00.000.000/0000-00"}
+                      value={signupData.document}
+                      onChange={handleDocumentChange}
+                      maxLength={documentType === "cpf" ? 14 : 18}
+                      required
+                    />
                   </div>
 
                   <div className="space-y-2">
