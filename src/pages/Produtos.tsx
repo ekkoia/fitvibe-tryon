@@ -63,26 +63,26 @@ export default function Produtos() {
   };
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-6 lg:space-y-8 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-4xl title-display text-foreground">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl title-display text-foreground">
             CATÁLOGO DE <span className="text-primary">PRODUTOS</span>
           </h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
             Gerencie as peças fitness disponíveis para try-on virtual.
           </p>
         </div>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="btn-lime flex items-center gap-2">
+            <Button className="btn-lime flex items-center gap-2 w-full sm:w-auto">
               <Plus className="w-5 h-5" />
               Novo Produto
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-card border-border">
+          <DialogContent className="bg-card border-border max-w-[calc(100%-2rem)] sm:max-w-lg">
             <DialogHeader>
               <DialogTitle className="title-display text-xl">
                 ADICIONAR <span className="text-primary">PRODUTO</span>
@@ -119,7 +119,7 @@ export default function Produtos() {
               </div>
               <div>
                 <Label>Imagem do Produto</Label>
-                <div className="mt-1.5 border-2 border-dashed border-border rounded-xl p-8 text-center hover:border-primary/50 transition-colors cursor-pointer">
+                <div className="mt-1.5 border-2 border-dashed border-border rounded-xl p-6 sm:p-8 text-center hover:border-primary/50 transition-colors cursor-pointer">
                   <div className="w-12 h-12 mx-auto rounded-full bg-muted flex items-center justify-center mb-3">
                     <Plus className="w-6 h-6 text-muted-foreground" />
                   </div>
@@ -137,7 +137,7 @@ export default function Produtos() {
       </div>
 
       {/* Search */}
-      <div className="relative max-w-md">
+      <div className="relative w-full sm:max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
         <Input
           value={searchTerm}
