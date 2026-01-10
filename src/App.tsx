@@ -10,7 +10,10 @@ import Dashboard from "./pages/Dashboard";
 import Produtos from "./pages/Produtos";
 import Atendimento from "./pages/Atendimento";
 import Analytics from "./pages/Analytics";
+import Perfil from "./pages/Perfil";
 import Auth from "./pages/Auth";
+import EsqueciSenha from "./pages/EsqueciSenha";
+import RedefinirSenha from "./pages/RedefinirSenha";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +27,8 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/esqueci-senha" element={<EsqueciSenha />} />
+            <Route path="/redefinir-senha" element={<RedefinirSenha />} />
             <Route
               path="/"
               element={
@@ -53,6 +58,14 @@ const App = () => (
               element={
                 <ProtectedRoute requireAdmin>
                   <AppLayout><Analytics /></AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/perfil"
+              element={
+                <ProtectedRoute>
+                  <AppLayout><Perfil /></AppLayout>
                 </ProtectedRoute>
               }
             />
