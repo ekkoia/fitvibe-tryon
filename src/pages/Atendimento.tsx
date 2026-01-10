@@ -161,16 +161,18 @@ export default function Atendimento() {
       <div className="flex flex-col lg:grid lg:grid-cols-12 gap-4 lg:gap-6 h-full">
         {/* Leads Panel */}
         <div className="lg:col-span-3 bg-card border border-border rounded-xl overflow-hidden flex flex-col max-h-48 lg:max-h-none">
+          {/* Header */}
           <div className="p-3 lg:p-4 border-b border-border flex items-center justify-between">
             <div className="flex items-center gap-2">
               <MessageSquare className="w-4 h-4 lg:w-5 lg:h-5 text-muted-foreground" />
               <span className="font-semibold text-foreground text-sm lg:text-base">INBOX LEADS</span>
             </div>
-            <span className="px-2 lg:px-3 py-1 bg-primary text-primary-foreground text-[10px] lg:text-xs font-semibold rounded-full">
+            <button className="px-3 lg:px-4 py-1.5 border border-primary text-primary text-[10px] lg:text-xs font-semibold rounded-full hover:bg-primary/10 transition-colors">
               NOVO LEAD
-            </span>
+            </button>
           </div>
           
+          {/* Leads List */}
           <div className="flex-1 overflow-y-auto">
             {mockLeads.map((lead) => (
               <button
@@ -178,17 +180,21 @@ export default function Atendimento() {
                 onClick={() => setSelectedLead(lead)}
                 className={`w-full p-3 lg:p-4 border-b border-border text-left transition-colors ${
                   selectedLead?.id === lead.id 
-                    ? "bg-muted/50" 
-                    : "hover:bg-muted/30"
+                    ? "bg-background" 
+                    : "hover:bg-background/50"
                 }`}
               >
-                <div className="flex items-center justify-between mb-1 lg:mb-2">
-                  <span className="font-medium text-foreground text-sm lg:text-base">{lead.phone}</span>
+                {/* Phone + Time */}
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-semibold text-primary text-sm lg:text-base">{lead.phone}</span>
                   <span className="text-[10px] lg:text-xs text-muted-foreground">{lead.time}</span>
                 </div>
+                {/* Icon + Status */}
                 <div className="flex items-center gap-2">
                   {lead.hasPhoto && (
-                    <Image className="w-3 h-3 lg:w-4 lg:h-4 text-muted-foreground" />
+                    <div className="w-6 h-6 lg:w-7 lg:h-7 rounded bg-muted/50 flex items-center justify-center">
+                      <Image className="w-3 h-3 lg:w-4 lg:h-4 text-muted-foreground" />
+                    </div>
                   )}
                   <span className={`status-badge text-[10px] lg:text-xs ${
                     lead.status === "pending" ? "status-pending" : "status-success"
