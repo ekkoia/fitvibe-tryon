@@ -12,6 +12,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCredits } from "@/hooks/useCredits";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
@@ -28,11 +29,12 @@ interface AppSidebarProps {
 
 export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
   const location = useLocation();
-  const { store, signOut, isAdmin } = useAuth();
+  const { signOut } = useAuth();
+  const { totalCredits, planName, planCredits, loading } = useCredits();
   
-  const tryOnsUsed = store?.tryons_used ?? 0;
-  const tryOnsTotal = store?.tryons_limit ?? 10;
-  const percentage = tryOnsTotal > 0 ? (tryOnsUsed / tryOnsTotal) * 100 : 0;
+  // Percentage based on credits used vs plan total
+  const creditsUsed = planCredits - totalCredits;
+  const percentage = planCredits > 0 ? Math.max(0, (totalCredits / planCredits) * 100) : 0;
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -108,12 +110,12 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
           <div className="p-3 mx-2 mb-2 bg-muted/30 rounded-lg border border-border">
             <div className="flex items-center justify-between mb-1">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Plano Pro
+                {planName}
               </span>
             </div>
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-xs text-foreground">
-                Try-ons: {tryOnsUsed}/{tryOnsTotal}
+                Créditos: {totalCredits}
               </span>
               <span className="text-xs font-semibold text-primary">
                 {Math.round(percentage)}%
@@ -132,8 +134,8 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
             </TooltipTrigger>
             <TooltipContent side="right">
               <div className="text-xs">
-                <p className="font-semibold">Plano Pro</p>
-                <p>Try-ons: {tryOnsUsed}/{tryOnsTotal}</p>
+                <p className="font-semibold">{planName}</p>
+                <p>Créditos: {totalCredits}</p>
               </div>
             </TooltipContent>
           </Tooltip>
