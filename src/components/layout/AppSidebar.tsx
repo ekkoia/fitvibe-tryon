@@ -49,12 +49,12 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
         {/* Toggle Button */}
         <button
           onClick={onToggle}
-          className="absolute -right-3 top-6 w-6 h-6 bg-sidebar border border-sidebar-border rounded-full flex items-center justify-center hover:bg-muted transition-colors z-50"
+          className="absolute -right-3 top-6 w-6 h-6 bg-primary border border-primary rounded-full flex items-center justify-center hover:bg-primary/80 transition-colors z-50 shadow-md"
         >
           {collapsed ? (
-            <ChevronRight className="w-3 h-3 text-muted-foreground" />
+            <ChevronRight className="w-3.5 h-3.5 text-primary-foreground" />
           ) : (
-            <ChevronLeft className="w-3 h-3 text-muted-foreground" />
+            <ChevronLeft className="w-3.5 h-3.5 text-primary-foreground" />
           )}
         </button>
 
