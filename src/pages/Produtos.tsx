@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { Plus, Search, MoreVertical, Tag, Upload, X } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Plus, Search, MoreVertical, Tag, Upload, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -17,31 +17,49 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface Product {
   id: string;
   name: string;
   category: string;
-  image: string;
-  status: "active" | "inactive";
+  image_url: string | null;
+  status: string;
 }
-
-const initialProducts: Product[] = [
-  { id: "1", name: "Legging Glow Black", category: "Legging", image: "/placeholder.svg", status: "active" },
-  { id: "2", name: "Top Neon Support", category: "Top", image: "/placeholder.svg", status: "active" },
-  { id: "3", name: "Conjunto Compression Pro", category: "Conjunto", image: "/placeholder.svg", status: "active" },
-  { id: "4", name: "Shorts Power Flex", category: "Shorts", image: "/placeholder.svg", status: "active" },
-];
 
 const categories = ["Top", "Legging", "Shorts", "Conjunto"];
 
 export default function Produtos() {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newProduct, setNewProduct] = useState({ name: "", category: "" });
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      toast.error('Erro ao carregar produtos');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -65,24 +83,40 @@ export default function Produtos() {
     p.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAddProduct = () => {
-    if (newProduct.name && newProduct.category) {
-      setProducts([
-        ...products,
-        {
-          id: Date.now().toString(),
+  const handleAddProduct = async () => {
+    if (!newProduct.name || !newProduct.category) {
+      toast.error('Preencha todos os campos obrigatórios');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .insert({
           name: newProduct.name,
           category: newProduct.category,
-          image: selectedImage || "/placeholder.svg",
-          status: "active",
-        },
-      ]);
+          image_url: selectedImage,
+          status: 'active'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setProducts([data, ...products]);
       setNewProduct({ name: "", category: "" });
       setSelectedImage(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
       setIsDialogOpen(false);
+      toast.success('Produto adicionado com sucesso!');
+    } catch (error) {
+      console.error('Error adding product:', error);
+      toast.error('Erro ao adicionar produto');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -179,8 +213,19 @@ export default function Produtos() {
                   </div>
                 )}
               </div>
-              <Button onClick={handleAddProduct} className="btn-lime w-full">
-                Adicionar Produto
+              <Button 
+                onClick={handleAddProduct} 
+                className="btn-lime w-full"
+                disabled={isSaving}
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  'Adicionar Produto'
+                )}
               </Button>
             </div>
           </DialogContent>
@@ -199,41 +244,47 @@ export default function Produtos() {
       </div>
 
       {/* Products Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {filteredProducts.map((product, index) => (
-          <div
-            key={product.id}
-            className="group bg-card border border-border rounded-xl overflow-hidden hover:border-primary/30 transition-all duration-300"
-            style={{ animationDelay: `${index * 50}ms` }}
-          >
-            <div className="aspect-square bg-muted relative overflow-hidden">
-              <img
-                src={product.image}
-                alt={product.name}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute top-3 right-3">
-                <button className="w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background transition-colors">
-                  <MoreVertical className="w-4 h-4 text-foreground" />
-                </button>
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {filteredProducts.map((product, index) => (
+            <div
+              key={product.id}
+              className="group bg-card border border-border rounded-xl overflow-hidden hover:border-primary/30 transition-all duration-300"
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
+              <div className="aspect-square bg-muted relative overflow-hidden">
+                <img
+                  src={product.image_url || "/placeholder.svg"}
+                  alt={product.name}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute top-3 right-3">
+                  <button className="w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background transition-colors">
+                    <MoreVertical className="w-4 h-4 text-foreground" />
+                  </button>
+                </div>
+              </div>
+              <div className="p-4">
+                <h3 className="font-semibold text-foreground mb-2">
+                  {product.name}
+                </h3>
+                <div className="flex items-center gap-2">
+                  <Tag className="w-4 h-4 text-primary" />
+                  <span className="text-sm text-muted-foreground">
+                    {product.category}
+                  </span>
+                </div>
               </div>
             </div>
-            <div className="p-4">
-              <h3 className="font-semibold text-foreground mb-2">
-                {product.name}
-              </h3>
-              <div className="flex items-center gap-2">
-                <Tag className="w-4 h-4 text-primary" />
-                <span className="text-sm text-muted-foreground">
-                  {product.category}
-                </span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
-      {filteredProducts.length === 0 && (
+      {!isLoading && filteredProducts.length === 0 && (
         <div className="text-center py-12">
           <p className="text-muted-foreground">Nenhum produto encontrado.</p>
         </div>
