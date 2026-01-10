@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MessageSquare, Upload, Image, Sparkles, Check, Loader2 } from "lucide-react";
+import { MessageSquare, Upload, Image, Sparkles, Check, Loader2, Download, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProcessingModal } from "@/components/tryon/ProcessingModal";
 import { supabase } from "@/integrations/supabase/client";
@@ -73,7 +73,6 @@ export default function Atendimento() {
     setIsProcessing(true);
     
     try {
-      // Get the clothing image
       const clothingImage = selectedProduct.image_url;
       
       if (!clothingImage) {
@@ -82,7 +81,6 @@ export default function Atendimento() {
         return;
       }
       
-      // If product image is a URL, fetch and convert to base64
       let clothingBase64 = clothingImage;
       if (clothingImage.startsWith('/') || clothingImage.startsWith('http')) {
         const response = await fetch(clothingImage);
@@ -126,7 +124,25 @@ export default function Atendimento() {
     setIsProcessing(false);
   };
 
-  const canGenerate = clientPhoto && selectedProduct;
+  const handleNewSimulation = () => {
+    setResultImage(null);
+    setSelectedProduct(null);
+    // Keep clientPhoto so user doesn't need to upload again
+  };
+
+  const handleSaveResult = () => {
+    if (!resultImage) return;
+    
+    const link = document.createElement('a');
+    link.href = resultImage;
+    link.download = `tryon-${selectedProduct?.name || 'resultado'}-${Date.now()}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("Imagem salva com sucesso!");
+  };
+
+  const canGenerate = clientPhoto && selectedProduct && !resultImage;
 
   return (
     <div className="animate-fade-in min-h-[calc(100vh-7rem)]">
@@ -189,10 +205,10 @@ export default function Atendimento() {
 
           {/* Content */}
           <div className="flex-1 p-4 lg:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6 overflow-y-auto">
-            {/* Client Photo Section */}
+            {/* Client Photo / Result Section */}
             <div className="flex-1 flex flex-col min-h-[200px] lg:min-h-0">
               <h3 className="text-[10px] lg:text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 lg:mb-4">
-                1. FOTO DO CLIENTE
+                {resultImage ? "RESULTADO" : "1. FOTO DO CLIENTE"}
               </h3>
               
               <div className="flex-1 border-2 border-dashed border-border rounded-xl flex items-center justify-center relative overflow-hidden hover:border-primary/50 transition-colors min-h-[180px]">
@@ -203,7 +219,7 @@ export default function Atendimento() {
                       alt="Resultado"
                       className="w-full h-full object-contain"
                     />
-                    <div className="absolute top-2 right-2 lg:top-4 lg:right-4 flex items-center gap-1 lg:gap-2 bg-success/90 text-success-foreground px-2 lg:px-3 py-1 lg:py-1.5 rounded-full">
+                    <div className="absolute top-2 right-2 lg:top-4 lg:right-4 flex items-center gap-1 lg:gap-2 bg-primary text-primary-foreground px-2 lg:px-3 py-1 lg:py-1.5 rounded-full">
                       <Check className="w-3 h-3 lg:w-4 lg:h-4" />
                       <span className="text-[10px] lg:text-xs font-semibold">Try-On Completo</span>
                     </div>
@@ -231,68 +247,128 @@ export default function Atendimento() {
               </div>
             </div>
 
-            {/* Product Selection */}
+            {/* Right Panel - Product Selection or Result Info */}
             <div className="w-full lg:w-72 flex flex-col">
-              <h3 className="text-[10px] lg:text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 lg:mb-4">
-                2. ESCOLHER ROUPA
-              </h3>
-              
-              <div className="flex-1 space-y-2 lg:space-y-3 overflow-y-auto max-h-48 lg:max-h-none">
-                {isLoadingProducts ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                  </div>
-                ) : products.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-sm text-muted-foreground">
-                      Nenhum produto cadastrado.
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Adicione produtos na página Produtos.
-                    </p>
-                  </div>
-                ) : (
-                  products.map((product) => (
-                    <button
-                      key={product.id}
-                      onClick={() => {
-                        setSelectedProduct(product);
-                        setResultImage(null);
-                      }}
-                      className={`w-full flex items-center gap-2 lg:gap-3 p-2 lg:p-3 rounded-xl border transition-all ${
-                        selectedProduct?.id === product.id
-                          ? "border-primary bg-primary/10"
-                          : "border-border hover:border-primary/50 bg-muted/30"
-                      }`}
-                    >
-                      <div className="w-10 h-10 lg:w-14 lg:h-14 rounded-lg bg-muted overflow-hidden flex-shrink-0">
+              {resultImage && selectedProduct ? (
+                // Result Info Panel
+                <div className="flex flex-col h-full">
+                  <div className="flex-1 space-y-4">
+                    {/* Title */}
+                    <div>
+                      <h2 className="text-2xl lg:text-3xl title-display text-foreground">
+                        SÍNTESE <span className="text-primary">REALISTA</span>
+                      </h2>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        As estampas e cores foram transferidas com{" "}
+                        <span className="text-primary font-medium">precisão cromática</span>, 
+                        adaptando-se às dobras e luz do corpo.
+                      </p>
+                    </div>
+
+                    {/* Reference Applied Card */}
+                    <div className="bg-muted/50 border border-border rounded-xl p-3 lg:p-4 flex items-center gap-3">
+                      <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-lg bg-muted overflow-hidden flex-shrink-0">
                         <img
-                          src={product.image_url || "/placeholder.svg"}
-                          alt={product.name}
+                          src={selectedProduct.image_url || "/placeholder.svg"}
+                          alt={selectedProduct.name}
                           className="w-full h-full object-cover"
                         />
                       </div>
-                      <span className="font-medium text-foreground text-left text-sm lg:text-base">
-                        {product.name}
-                      </span>
-                    </button>
-                  ))
-                )}
-              </div>
+                      <div>
+                        <span className="text-[10px] lg:text-xs font-semibold uppercase tracking-wider text-primary">
+                          REFERÊNCIA APLICADA
+                        </span>
+                        <p className="text-sm font-medium text-foreground mt-0.5">
+                          {selectedProduct.name}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
 
-              {/* Generate Button */}
-              <Button
-                onClick={handleGenerate}
-                disabled={!canGenerate}
-                className={`mt-3 lg:mt-4 w-full py-4 lg:py-6 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all text-sm lg:text-base ${
-                  canGenerate
-                    ? "btn-lime"
-                    : "bg-muted text-muted-foreground cursor-not-allowed"
-                }`}
-              >
-                <Sparkles className="w-4 h-4 lg:w-5 lg:h-5" />
-                GERAR RESULTADO
-              </Button>
+                  {/* Action Buttons */}
+                  <div className="space-y-3 mt-4">
+                    <Button
+                      onClick={handleSaveResult}
+                      className="w-full py-4 lg:py-6 rounded-xl font-semibold flex items-center justify-center gap-2 bg-foreground text-background hover:bg-foreground/90"
+                    >
+                      <Download className="w-4 h-4 lg:w-5 lg:h-5" />
+                      SALVAR RESULTADO
+                    </Button>
+                    <Button
+                      onClick={handleNewSimulation}
+                      variant="outline"
+                      className="w-full py-4 lg:py-6 rounded-xl font-semibold flex items-center justify-center gap-2 border-border hover:bg-muted"
+                    >
+                      <RefreshCw className="w-4 h-4 lg:w-5 lg:h-5" />
+                      NOVA SIMULAÇÃO
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                // Product Selection Panel
+                <>
+                  <h3 className="text-[10px] lg:text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 lg:mb-4">
+                    2. ESCOLHER ROUPA
+                  </h3>
+                  
+                  <div className="flex-1 space-y-2 lg:space-y-3 overflow-y-auto max-h-48 lg:max-h-none">
+                    {isLoadingProducts ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                      </div>
+                    ) : products.length === 0 ? (
+                      <div className="text-center py-8">
+                        <p className="text-sm text-muted-foreground">
+                          Nenhum produto cadastrado.
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Adicione produtos na página Produtos.
+                        </p>
+                      </div>
+                    ) : (
+                      products.map((product) => (
+                        <button
+                          key={product.id}
+                          onClick={() => {
+                            setSelectedProduct(product);
+                            setResultImage(null);
+                          }}
+                          className={`w-full flex items-center gap-2 lg:gap-3 p-2 lg:p-3 rounded-xl border transition-all ${
+                            selectedProduct?.id === product.id
+                              ? "border-primary bg-primary/10"
+                              : "border-border hover:border-primary/50 bg-muted/30"
+                          }`}
+                        >
+                          <div className="w-10 h-10 lg:w-14 lg:h-14 rounded-lg bg-muted overflow-hidden flex-shrink-0">
+                            <img
+                              src={product.image_url || "/placeholder.svg"}
+                              alt={product.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <span className="font-medium text-foreground text-left text-sm lg:text-base">
+                            {product.name}
+                          </span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Generate Button */}
+                  <Button
+                    onClick={handleGenerate}
+                    disabled={!canGenerate}
+                    className={`mt-3 lg:mt-4 w-full py-4 lg:py-6 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all text-sm lg:text-base ${
+                      canGenerate
+                        ? "btn-lime"
+                        : "bg-muted text-muted-foreground cursor-not-allowed"
+                    }`}
+                  >
+                    <Sparkles className="w-4 h-4 lg:w-5 lg:h-5" />
+                    GERAR RESULTADO
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
