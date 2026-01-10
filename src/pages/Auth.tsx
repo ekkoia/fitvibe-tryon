@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Sparkles } from "lucide-react";
 import { z } from "zod";
+import { maskCPF, maskCNPJ, maskPhone, isValidCPF, isValidCNPJ, isValidPhone, unmask } from "@/lib/masks";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -20,6 +21,9 @@ const signupSchema = z.object({
   password: z.string().min(6, "Senha deve ter no mínimo 6 caracteres"),
   storeName: z.string().min(2, "Nome da loja deve ter no mínimo 2 caracteres"),
   fullName: z.string().min(2, "Nome completo deve ter no mínimo 2 caracteres"),
+  cpf: z.string().refine((val) => isValidCPF(val), "CPF inválido"),
+  cnpj: z.string().refine((val) => isValidCNPJ(val), "CNPJ inválido"),
+  phone: z.string().refine((val) => isValidPhone(val), "Telefone inválido"),
 });
 
 export default function Auth() {
@@ -34,6 +38,9 @@ export default function Auth() {
     password: "",
     storeName: "",
     fullName: "",
+    cpf: "",
+    cnpj: "",
+    phone: "",
   });
 
   useEffect(() => {
@@ -99,7 +106,10 @@ export default function Auth() {
       signupData.email,
       signupData.password,
       signupData.storeName,
-      signupData.fullName
+      signupData.fullName,
+      unmask(signupData.cpf),
+      unmask(signupData.cnpj),
+      unmask(signupData.phone)
     );
     setIsLoading(false);
 
@@ -123,6 +133,18 @@ export default function Auth() {
       description: "Sua loja foi criada com sucesso. Bem-vindo ao FitVibe!",
     });
     navigate("/");
+  };
+
+  const handleCPFChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSignupData({ ...signupData, cpf: maskCPF(e.target.value) });
+  };
+
+  const handleCNPJChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSignupData({ ...signupData, cnpj: maskCNPJ(e.target.value) });
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSignupData({ ...signupData, phone: maskPhone(e.target.value) });
   };
 
   if (authLoading) {
@@ -203,11 +225,11 @@ export default function Auth() {
               <TabsContent value="signup">
                 <form onSubmit={handleSignup} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-name">Nome Completo</Label>
+                    <Label htmlFor="signup-name">Nome Completo *</Label>
                     <Input
                       id="signup-name"
                       type="text"
-                      placeholder="Seu nome"
+                      placeholder="Seu nome completo"
                       value={signupData.fullName}
                       onChange={(e) =>
                         setSignupData({ ...signupData, fullName: e.target.value })
@@ -215,8 +237,49 @@ export default function Auth() {
                       required
                     />
                   </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-cpf">CPF *</Label>
+                      <Input
+                        id="signup-cpf"
+                        type="text"
+                        placeholder="000.000.000-00"
+                        value={signupData.cpf}
+                        onChange={handleCPFChange}
+                        maxLength={14}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-cnpj">CNPJ *</Label>
+                      <Input
+                        id="signup-cnpj"
+                        type="text"
+                        placeholder="00.000.000/0000-00"
+                        value={signupData.cnpj}
+                        onChange={handleCNPJChange}
+                        maxLength={18}
+                        required
+                      />
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
-                    <Label htmlFor="signup-store">Nome da Loja</Label>
+                    <Label htmlFor="signup-phone">Telefone *</Label>
+                    <Input
+                      id="signup-phone"
+                      type="text"
+                      placeholder="(00) 00000-0000"
+                      value={signupData.phone}
+                      onChange={handlePhoneChange}
+                      maxLength={15}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-store">Nome da Loja *</Label>
                     <Input
                       id="signup-store"
                       type="text"
@@ -228,8 +291,9 @@ export default function Auth() {
                       required
                     />
                   </div>
+                  
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
+                    <Label htmlFor="signup-email">Email *</Label>
                     <Input
                       id="signup-email"
                       type="email"
@@ -242,7 +306,7 @@ export default function Auth() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Senha</Label>
+                    <Label htmlFor="signup-password">Senha *</Label>
                     <Input
                       id="signup-password"
                       type="password"
