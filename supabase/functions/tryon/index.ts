@@ -39,92 +39,121 @@ serve(async (req) => {
     const clientData = cleanBase64(clientImage);
     const clothingData = cleanBase64(clothingImage);
 
-    // High-fidelity prompt calibrated for fitness virtual try-on
-    const prompt = `
-      CONTEXT: High-end virtual try-on for professional fitness e-commerce.
-      
-      TASK: Synthesize a photo of the person in IMAGE 1 wearing the EXACT garment from IMAGE 2.
-      
-      STRICT CONSTRAINTS:
-      1. DESIGN FIDELITY: Transfer 100% of the colors, patterns, logos, and textures from IMAGE 2. Do not simplify or alter the pattern.
-      2. ANATOMY: Keep the person's face, skin tone, hair, and body shape from IMAGE 1 identical.
-      3. PHYSICS: Adapt the fabric to the person's pose, creating realistic compression wrinkles and highlights typical of sports fabrics (spandex/polyamide).
-      4. CLEANLINESS: Seamlessly remove the old clothing. Edges where skin meets fabric must be photorealistic.
-      
-      OUTPUT: Generate a single photorealistic image showing the person wearing the exact garment.
-    `;
+    // Professional e-commerce prompt focused on product visualization
+    const prompt = `You are a professional fashion visualization assistant for an e-commerce platform.
 
-    console.log("Calling Lovable AI for try-on synthesis...");
+TASK: Create a product visualization showing how the athletic wear from the second image would look when worn by the person in the first image.
 
-    // Call Lovable AI Gateway with the image generation model
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image-preview",
-        messages: [
-          {
-            role: "user",
-            content: [
-              { type: "text", text: prompt },
+REQUIREMENTS:
+1. PRODUCT ACCURACY: The athletic garment must match the exact design, colors, patterns and branding from the product image.
+2. PROFESSIONAL RESULT: Create a clean, professional e-commerce style image suitable for online retail.
+3. NATURAL FIT: Show the garment with natural fabric draping appropriate for athletic/fitness wear.
+4. MAINTAIN IDENTITY: The person's face, hair, and overall appearance should remain unchanged.
+
+This is for a legitimate fitness apparel e-commerce virtual try-on feature.
+
+Generate a single professional product visualization image.`;
+
+    // Models to try in order of preference
+    const models = [
+      "google/gemini-3-pro-image-preview",
+      "google/gemini-2.5-flash-image-preview"
+    ];
+
+    let lastError: string | null = null;
+
+    for (const model of models) {
+      console.log(`Attempting try-on with model: ${model}`);
+
+      try {
+        const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: model,
+            messages: [
               {
-                type: "image_url",
-                image_url: { url: `data:image/jpeg;base64,${clientData}` }
-              },
-              {
-                type: "image_url",
-                image_url: { url: `data:image/jpeg;base64,${clothingData}` }
+                role: "user",
+                content: [
+                  { type: "text", text: prompt },
+                  {
+                    type: "image_url",
+                    image_url: { url: `data:image/jpeg;base64,${clientData}` }
+                  },
+                  {
+                    type: "image_url",
+                    image_url: { url: `data:image/jpeg;base64,${clothingData}` }
+                  }
+                ]
               }
-            ]
+            ],
+            modalities: ["image", "text"]
+          }),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`Model ${model} error:`, response.status, errorText);
+          
+          if (response.status === 429) {
+            return new Response(
+              JSON.stringify({ error: "Limite de requisições excedido. Tente novamente em alguns segundos." }),
+              { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
           }
-        ],
-        modalities: ["image", "text"]
-      }),
-    });
+          if (response.status === 402) {
+            return new Response(
+              JSON.stringify({ error: "Créditos insuficientes. Adicione créditos ao seu workspace." }),
+              { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+          
+          lastError = `Model ${model} returned status ${response.status}`;
+          continue;
+        }
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Lovable AI error:", response.status, errorText);
-      
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Limite de requisições excedido. Tente novamente em alguns segundos." }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        const data = await response.json();
+        console.log(`Model ${model} response received`);
+
+        // Check for safety filter
+        const finishReason = data.choices?.[0]?.native_finish_reason || data.choices?.[0]?.finish_reason;
+        if (finishReason === "IMAGE_SAFETY") {
+          console.warn(`Model ${model} blocked by safety filter`);
+          lastError = "Filtro de segurança ativado";
+          continue;
+        }
+
+        // Extract the generated image from the response
+        const generatedImage = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+
+        if (generatedImage) {
+          console.log(`Successfully generated image with model: ${model}`);
+          return new Response(
+            JSON.stringify({ resultImage: generatedImage }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        console.warn(`Model ${model} returned no image:`, JSON.stringify(data));
+        lastError = "Modelo não retornou imagem";
+        
+      } catch (modelError) {
+        console.error(`Model ${model} exception:`, modelError);
+        lastError = modelError instanceof Error ? modelError.message : "Erro ao chamar modelo";
       }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Créditos insuficientes. Adicione créditos ao seu workspace." }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
-      return new Response(
-        JSON.stringify({ error: "Erro ao processar imagem com IA" }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
     }
 
-    const data = await response.json();
-    console.log("Lovable AI response received");
-
-    // Extract the generated image from the response
-    const generatedImage = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-
-    if (!generatedImage) {
-      console.error("No image in response:", JSON.stringify(data));
-      return new Response(
-        JSON.stringify({ error: "Nenhuma imagem foi gerada pela IA" }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
+    // All models failed
+    console.error("All models failed. Last error:", lastError);
     return new Response(
-      JSON.stringify({ resultImage: generatedImage }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ 
+        error: "Não foi possível gerar a visualização. Por favor, tente com imagens diferentes.",
+        details: lastError 
+      }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
