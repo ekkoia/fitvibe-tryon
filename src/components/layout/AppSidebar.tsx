@@ -30,10 +30,12 @@ interface AppSidebarProps {
 export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
   const location = useLocation();
   const { signOut } = useAuth();
-  const { totalCredits, planName, planCredits, loading } = useCredits();
+  const { totalCredits, planName, plan, loading } = useCredits();
   
-  // Percentage based on credits remaining vs plan total (capped at 100%)
-  const percentage = planCredits > 0 ? Math.min(100, Math.max(0, (totalCredits / planCredits) * 100)) : 0;
+  // Max credits for plan (same logic as CreditWidget)
+  const maxPlanCredits = plan === "trial" ? 50 : plan === "starter" ? 100 : plan === "growth" ? 300 : 800;
+  // Remaining percentage (capped at 100%)
+  const remainingPercent = Math.min(100, (totalCredits / maxPlanCredits) * 100);
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -114,27 +116,27 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
             </div>
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-xs text-foreground">
-                Créditos: {totalCredits}
+                Créditos: {totalCredits}/{maxPlanCredits}
               </span>
               <span className="text-xs font-semibold text-primary">
-                {Math.round(percentage)}%
+                {Math.round(remainingPercent)}%
               </span>
             </div>
-            <Progress value={percentage} className="h-1" />
+            <Progress value={remainingPercent} className="h-1" />
           </div>
         ) : (
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="mx-2 mb-2 p-2 bg-muted/30 rounded-lg border border-border flex justify-center">
                 <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
-                  <span className="text-[8px] font-bold text-primary">{Math.round(percentage)}%</span>
+                  <span className="text-[8px] font-bold text-primary">{Math.round(remainingPercent)}%</span>
                 </div>
               </div>
             </TooltipTrigger>
             <TooltipContent side="right">
               <div className="text-xs">
                 <p className="font-semibold">{planName}</p>
-                <p>Créditos: {totalCredits}</p>
+                <p>Créditos: {totalCredits}/{maxPlanCredits}</p>
               </div>
             </TooltipContent>
           </Tooltip>
