@@ -31,6 +31,7 @@ export default function Atendimento() {
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [resultDescription, setResultDescription] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isFinalizing, setIsFinalizing] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
 
@@ -72,6 +73,7 @@ export default function Atendimento() {
     if (!clientPhoto || !selectedProduct) return;
     
     setIsProcessing(true);
+    setIsFinalizing(false);
     
     try {
       const clothingImage = selectedProduct.image_url;
@@ -104,32 +106,39 @@ export default function Atendimento() {
         console.error("Try-on error:", error);
         toast.error(error.message || "Erro ao gerar try-on");
         setIsProcessing(false);
+        setIsFinalizing(false);
         return;
       }
 
       if (data?.resultImage) {
         setResultImage(data.resultImage);
         setResultDescription(data.description || null);
+        setIsFinalizing(false);
         toast.success("Try-on gerado com sucesso!");
       } else if (data?.error) {
+        setIsFinalizing(false);
         toast.error(data.error);
       }
     } catch (err) {
       console.error("Try-on error:", err);
       toast.error("Erro ao conectar com o serviço de IA");
+      setIsFinalizing(false);
     } finally {
       setIsProcessing(false);
     }
   };
 
   const handleProcessingComplete = () => {
+    // Modal animation finished, now show finalizing state
     setIsProcessing(false);
+    setIsFinalizing(true);
   };
 
   const handleNewSimulation = () => {
     setResultImage(null);
     setResultDescription(null);
     setSelectedProduct(null);
+    setIsFinalizing(false);
     // Keep clientPhoto so user doesn't need to upload again
   };
 
@@ -225,6 +234,17 @@ export default function Atendimento() {
                     <div className="absolute top-2 right-2 lg:top-4 lg:right-4 flex items-center gap-1 lg:gap-2 bg-primary text-primary-foreground px-2 lg:px-3 py-1 lg:py-1.5 rounded-full">
                       <Check className="w-3 h-3 lg:w-4 lg:h-4" />
                       <span className="text-[10px] lg:text-xs font-semibold">Try-On Completo</span>
+                    </div>
+                  </div>
+                ) : isFinalizing ? (
+                  <div className="flex flex-col items-center justify-center gap-4 p-8">
+                    <div className="relative w-16 h-16">
+                      <div className="absolute inset-0 rounded-full border-4 border-muted" />
+                      <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-lg font-semibold text-foreground">Finalizando resultado...</p>
+                      <p className="text-sm text-muted-foreground mt-1">Quase lá! Preparando sua imagem.</p>
                     </div>
                   </div>
                 ) : clientPhoto ? (
