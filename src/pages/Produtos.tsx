@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -19,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Product {
   id: string;
@@ -31,6 +33,7 @@ interface Product {
 const categories = ["Top", "Legging", "Shorts", "Conjunto"];
 
 export default function Produtos() {
+  const { store } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -89,6 +92,11 @@ export default function Produtos() {
       return;
     }
 
+    if (!store?.id) {
+      toast.error('Loja não encontrada. Faça login novamente.');
+      return;
+    }
+
     setIsSaving(true);
     try {
       const { data, error } = await supabase
@@ -97,7 +105,8 @@ export default function Produtos() {
           name: newProduct.name,
           category: newProduct.category,
           image_url: selectedImage,
-          status: 'active'
+          status: 'active',
+          store_id: store.id
         })
         .select()
         .single();
@@ -145,6 +154,9 @@ export default function Produtos() {
               <DialogTitle className="title-display text-xl">
                 ADICIONAR <span className="text-primary">PRODUTO</span>
               </DialogTitle>
+              <DialogDescription className="sr-only">
+                Formulário para adicionar um novo produto ao catálogo
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 mt-4">
               <div>
