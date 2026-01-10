@@ -42,21 +42,12 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
     <TooltipProvider delayDuration={0}>
       <aside className={`fixed left-0 top-0 h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300 z-50 md:z-auto ${collapsed ? 'w-14' : 'w-48'}`}>
         {/* Logo */}
-        <div className={`p-4 flex items-center ${collapsed ? 'justify-center' : 'justify-start'}`}>
-          {collapsed ? (
-            <img 
-              src={cabeproLogo} 
-              alt="CABEPRO" 
-              className="h-7 w-auto object-contain"
-              style={{ maxWidth: '28px', objectFit: 'cover', objectPosition: 'left' }}
-            />
-          ) : (
-            <img 
-              src={cabeproLogo} 
-              alt="CABEPRO" 
-              className="h-6 w-auto object-contain"
-            />
-          )}
+        <div className={`px-3 py-4 flex items-center ${collapsed ? 'justify-center' : 'justify-start'}`}>
+          <img 
+            src={cabeproLogo} 
+            alt="CABEPRO" 
+            className={`object-contain ${collapsed ? 'h-6 w-6' : 'h-8 max-w-[140px]'}`}
+          />
         </div>
 
         {/* Toggle Button */}
