@@ -45,10 +45,16 @@ export function AppLayout({ children }: AppLayoutProps) {
     });
   };
 
-  const formatDayOfWeek = (date: Date) => {
-    return date.toLocaleDateString("pt-BR", {
-      weekday: "long",
-    });
+  const formatDateTime = (date: Date) => {
+    const weekday = date.toLocaleDateString("pt-BR", { weekday: "long" });
+    const day = date.getDate();
+    const month = date.toLocaleDateString("pt-BR", { month: "long" });
+    const time = date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    
+    // Capitalize first letter of weekday
+    const capitalizedWeekday = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+    
+    return `${capitalizedWeekday}, dia ${day} ${month} - ${time}`;
   };
 
   const getGreeting = (date: Date) => {
@@ -79,8 +85,8 @@ export function AppLayout({ children }: AppLayoutProps) {
             <span className="text-sm font-semibold text-foreground">
               {getGreeting(currentTime)}, {firstName}
             </span>
-            <span className="text-xs text-muted-foreground capitalize">
-              {formatDayOfWeek(currentTime)}, {formatTime(currentTime)}
+            <span className="text-xs text-muted-foreground">
+              {formatDateTime(currentTime)}
             </span>
           </div>
 
