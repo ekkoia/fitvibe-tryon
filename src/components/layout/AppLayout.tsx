@@ -90,8 +90,20 @@ export function AppLayout({ children }: AppLayoutProps) {
             </span>
           </div>
 
-          {/* Right side - Credits, Badge, Profile */}
+          {/* Right side - Badge, Credits, Profile */}
           <div className="flex items-center gap-3 md:gap-4">
+            {/* Plan Badge */}
+            <Badge 
+              variant={plan === "trial" ? "secondary" : "default"}
+              className={`text-[10px] uppercase tracking-wider ${
+                plan === "trial" 
+                  ? "bg-amber-500/10 text-amber-600 border-amber-500/30 hover:bg-amber-500/20" 
+                  : "bg-primary/10 text-primary border-primary/30"
+              }`}
+            >
+              {planName}
+            </Badge>
+
             {/* Credits Counter */}
             <Tooltip>
               <TooltipTrigger asChild>
@@ -109,18 +121,6 @@ export function AppLayout({ children }: AppLayoutProps) {
                 <p className="text-xs">Créditos Restantes</p>
               </TooltipContent>
             </Tooltip>
-
-            {/* Plan Badge */}
-            <Badge 
-              variant={plan === "trial" ? "secondary" : "default"}
-              className={`text-[10px] uppercase tracking-wider ${
-                plan === "trial" 
-                  ? "bg-amber-500/10 text-amber-600 border-amber-500/30 hover:bg-amber-500/20" 
-                  : "bg-primary/10 text-primary border-primary/30"
-              }`}
-            >
-              {planName}
-            </Badge>
 
             {/* Profile Dropdown */}
             <DropdownMenu>
