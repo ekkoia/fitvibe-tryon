@@ -273,50 +273,52 @@ export default function Atendimento() {
                 {resultImage ? "RESULTADO" : "1. FOTO DO CLIENTE"}
               </h3>
               
-              <div className="flex-1 border-2 border-dashed border-border rounded-xl flex items-center justify-center relative overflow-hidden hover:border-primary/50 transition-colors min-h-[180px]">
-                {resultImage ? (
-                  <div className="relative w-full h-full">
+              <div className="flex-1 flex items-center justify-center">
+                <div className="w-full max-w-md aspect-[3/4] border-2 border-dashed border-border rounded-2xl flex items-center justify-center relative overflow-hidden hover:border-primary/50 transition-colors bg-muted/20">
+                  {resultImage ? (
+                    <div className="relative w-full h-full">
+                      <img
+                        src={resultImage}
+                        alt="Resultado"
+                        className="w-full h-full object-contain"
+                      />
+                      <div className="absolute top-2 right-2 lg:top-4 lg:right-4 flex items-center gap-1 lg:gap-2 bg-primary text-primary-foreground px-2 lg:px-3 py-1 lg:py-1.5 rounded-full">
+                        <Check className="w-3 h-3 lg:w-4 lg:h-4" />
+                        <span className="text-[10px] lg:text-xs font-semibold">Try-On Completo</span>
+                      </div>
+                    </div>
+                  ) : isFinalizing ? (
+                    <div className="flex flex-col items-center justify-center gap-4 p-8">
+                      <div className="relative w-16 h-16">
+                        <div className="absolute inset-0 rounded-full border-4 border-muted" />
+                        <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+                      </div>
+                      <div className="text-center">
+                        <p className="text-lg font-semibold text-foreground">Finalizando resultado...</p>
+                        <p className="text-sm text-muted-foreground mt-1">Quase lá! Preparando sua imagem.</p>
+                      </div>
+                    </div>
+                  ) : clientPhoto ? (
                     <img
-                      src={resultImage}
-                      alt="Resultado"
+                      src={clientPhoto}
+                      alt="Cliente"
                       className="w-full h-full object-contain"
                     />
-                    <div className="absolute top-2 right-2 lg:top-4 lg:right-4 flex items-center gap-1 lg:gap-2 bg-primary text-primary-foreground px-2 lg:px-3 py-1 lg:py-1.5 rounded-full">
-                      <Check className="w-3 h-3 lg:w-4 lg:h-4" />
-                      <span className="text-[10px] lg:text-xs font-semibold">Try-On Completo</span>
-                    </div>
-                  </div>
-                ) : isFinalizing ? (
-                  <div className="flex flex-col items-center justify-center gap-4 p-8">
-                    <div className="relative w-16 h-16">
-                      <div className="absolute inset-0 rounded-full border-4 border-muted" />
-                      <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin" />
-                    </div>
-                    <div className="text-center">
-                      <p className="text-lg font-semibold text-foreground">Finalizando resultado...</p>
-                      <p className="text-sm text-muted-foreground mt-1">Quase lá! Preparando sua imagem.</p>
-                    </div>
-                  </div>
-                ) : clientPhoto ? (
-                  <img
-                    src={clientPhoto}
-                    alt="Cliente"
-                    className="w-full h-full object-contain"
-                  />
-                ) : (
-                  <label className="cursor-pointer flex flex-col items-center gap-2 lg:gap-3 p-4 lg:p-8">
-                    <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-full bg-muted flex items-center justify-center">
-                      <Upload className="w-6 h-6 lg:w-8 lg:h-8 text-muted-foreground" />
-                    </div>
-                    <span className="text-muted-foreground text-sm lg:text-base">Upload Foto</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handlePhotoUpload}
-                      className="hidden"
-                    />
-                  </label>
-                )}
+                  ) : (
+                    <label className="cursor-pointer flex flex-col items-center gap-2 lg:gap-3 p-4 lg:p-8">
+                      <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-full bg-muted flex items-center justify-center">
+                        <Upload className="w-6 h-6 lg:w-8 lg:h-8 text-muted-foreground" />
+                      </div>
+                      <span className="text-muted-foreground text-sm lg:text-base">Upload Foto</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -382,62 +384,65 @@ export default function Atendimento() {
                     2. ESCOLHER ROUPA
                   </h3>
                   
-                  <div className="flex-1 space-y-2 lg:space-y-3 overflow-y-auto max-h-48 lg:max-h-none">
-                    {isLoadingProducts ? (
-                      <div className="flex items-center justify-center py-8">
-                        <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                      </div>
-                    ) : products.length === 0 ? (
-                      <div className="text-center py-8">
-                        <p className="text-sm text-muted-foreground">
-                          Nenhum produto cadastrado.
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Adicione produtos na página Produtos.
-                        </p>
-                      </div>
-                    ) : (
-                      products.map((product) => (
-                        <button
-                          key={product.id}
-                          onClick={() => {
-                            setSelectedProduct(product);
-                            setResultImage(null);
-                          }}
-                          className={`w-full flex items-center gap-2 lg:gap-3 p-2 lg:p-3 rounded-xl border transition-all ${
-                            selectedProduct?.id === product.id
-                              ? "border-primary bg-primary/10"
-                              : "border-border hover:border-primary/50 bg-muted/30"
-                          }`}
-                        >
-                          <div className="w-10 h-10 lg:w-14 lg:h-14 rounded-lg bg-muted overflow-hidden flex-shrink-0">
-                            <img
-                              src={product.image_url || "/placeholder.svg"}
-                              alt={product.name}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <span className="font-medium text-foreground text-left text-sm lg:text-base">
-                            {product.name}
-                          </span>
-                        </button>
-                      ))
-                    )}
-                  </div>
+                  {/* Container card para produtos */}
+                  <div className="flex-1 bg-muted/30 border border-border rounded-xl p-3 lg:p-4 flex flex-col">
+                    <div className="flex-1 space-y-2 lg:space-y-3 overflow-y-auto max-h-48 lg:max-h-none">
+                      {isLoadingProducts ? (
+                        <div className="flex items-center justify-center py-8">
+                          <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                        </div>
+                      ) : products.length === 0 ? (
+                        <div className="text-center py-8">
+                          <p className="text-sm text-muted-foreground">
+                            Nenhum produto cadastrado.
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Adicione produtos na página Produtos.
+                          </p>
+                        </div>
+                      ) : (
+                        products.map((product) => (
+                          <button
+                            key={product.id}
+                            onClick={() => {
+                              setSelectedProduct(product);
+                              setResultImage(null);
+                            }}
+                            className={`w-full flex items-center gap-2 lg:gap-3 p-2 lg:p-3 rounded-xl border transition-all ${
+                              selectedProduct?.id === product.id
+                                ? "border-primary bg-primary/10"
+                                : "border-border hover:border-primary/50 bg-card"
+                            }`}
+                          >
+                            <div className="w-10 h-10 lg:w-14 lg:h-14 rounded-lg bg-muted overflow-hidden flex-shrink-0">
+                              <img
+                                src={product.image_url || "/placeholder.svg"}
+                                alt={product.name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <span className="font-medium text-foreground text-left text-sm lg:text-base">
+                              {product.name}
+                            </span>
+                          </button>
+                        ))
+                      )}
+                    </div>
 
-                  {/* Generate Button */}
-                  <Button
-                    onClick={handleGenerate}
-                    disabled={!canGenerate}
-                    className={`mt-3 lg:mt-4 w-full py-4 lg:py-6 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all text-sm lg:text-base ${
-                      canGenerate
-                        ? "btn-lime"
-                        : "bg-muted text-muted-foreground cursor-not-allowed"
-                    }`}
-                  >
-                    <Sparkles className="w-4 h-4 lg:w-5 lg:h-5" />
-                    GERAR RESULTADO
-                  </Button>
+                    {/* Generate Button */}
+                    <Button
+                      onClick={handleGenerate}
+                      disabled={!canGenerate}
+                      className={`mt-3 lg:mt-4 w-full py-4 lg:py-6 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all text-sm lg:text-base ${
+                        canGenerate
+                          ? "btn-lime"
+                          : "bg-muted text-muted-foreground cursor-not-allowed"
+                      }`}
+                    >
+                      <Sparkles className="w-4 h-4 lg:w-5 lg:h-5" />
+                      GERAR RESULTADO
+                    </Button>
+                  </div>
                 </>
               )}
             </div>
