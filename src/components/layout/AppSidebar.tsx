@@ -8,6 +8,7 @@ import {
   ChevronLeft,
   ChevronRight,
   User,
+  CreditCard,
 } from "lucide-react";
 import cabeproLogo from "@/assets/cabepro-logo-horizontal.png";
 import { Progress } from "@/components/ui/progress";
@@ -21,6 +22,7 @@ const navItems = [
   { icon: MessageSquare, label: "Atendimento", path: "/atendimento" },
   { icon: BarChart3, label: "Analytics", path: "/analytics" },
   { icon: User, label: "Meu Perfil", path: "/perfil" },
+  { icon: CreditCard, label: "Planos", path: "/billing/plans" },
 ];
 
 interface AppSidebarProps {
