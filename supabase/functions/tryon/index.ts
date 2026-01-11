@@ -76,9 +76,9 @@ serve(async (req) => {
         console.log(`Attempt ${attempt}/${retries}`);
         
         try {
-          // Call Gemini API directly via REST - using official image generation model
+          // Call Gemini API directly via REST - using gemini-2.5-flash-image for image generation
           const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${GOOGLE_API_KEY}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-image-generation:generateContent?key=${GOOGLE_API_KEY}`,
             {
               method: 'POST',
               headers: {
