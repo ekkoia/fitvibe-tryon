@@ -177,7 +177,7 @@ export default function Auth() {
             <img 
               src={cabeproLogo} 
               alt="CabePro" 
-              className="h-10 w-auto"
+              className="h-14 w-auto"
             />
           </div>
           <p className="text-muted-foreground">Try-On Virtual para sua loja</p>
