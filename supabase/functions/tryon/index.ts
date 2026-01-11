@@ -43,15 +43,20 @@ serve(async (req) => {
     const synthesisPrompt = `
       CONTEXT: High-end virtual try-on for professional fitness e-commerce.
       
-      TASK: Synthesize a photo of the person in IMAGE 1 wearing the EXACT garment from IMAGE 2.
+      TASK: Synthesize a photo of the person in IMAGE 1 wearing ALL garments from IMAGE 2.
+      
+      CRITICAL - COMPLETE OUTFIT TRANSFER:
+      - If IMAGE 2 shows a SET (top + shorts, top + leggings, etc.), you MUST apply BOTH pieces.
+      - If IMAGE 2 shows a SINGLE PIECE, apply only that piece.
+      - NEVER apply only part of a set. The entire outfit in IMAGE 2 must appear on the person.
       
       STRICT CONSTRAINTS:
-      1. DESIGN FIDELITY: Transfer 100% of the colors, patterns, logos, and textures from IMAGE 2. Do not simplify or alter the pattern.
+      1. DESIGN FIDELITY: Transfer 100% of the colors, patterns, logos, and textures from IMAGE 2 for ALL pieces. Do not simplify or alter any pattern.
       2. ANATOMY: Keep the person's face, skin tone, hair, and body shape from IMAGE 1 identical.
-      3. PHYSICS: Adapt the fabric to the person's pose, creating realistic compression wrinkles and highlights typical of sports fabrics (spandex/polyamide).
-      4. CLEANLINESS: Seamlessly remove the old clothing. Edges where skin meets fabric must be photorealistic.
+      3. PHYSICS: Adapt each garment's fabric to the person's pose. Respect the original fit style - if shorts appear loose/relaxed in IMAGE 2, render them loose. If tight/compression fit, render them tight.
+      4. CLEANLINESS: Seamlessly remove ALL old clothing. Edges where skin meets fabric must be photorealistic.
       
-      OUTPUT: Return the synthesized image.
+      OUTPUT: Return the synthesized image showing the person wearing the COMPLETE outfit from IMAGE 2.
     `;
 
     // Prompt for generating dynamic description
