@@ -78,7 +78,7 @@ serve(async (req) => {
         try {
           // Call Gemini API directly via REST - using gemini-2.5-flash-image for image generation
           const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-image-generation:generateContent?key=${GOOGLE_API_KEY}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${GOOGLE_API_KEY}`,
             {
               method: 'POST',
               headers: {
