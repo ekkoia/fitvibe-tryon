@@ -21,9 +21,9 @@ serve(async (req) => {
       );
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      console.error("LOVABLE_API_KEY is not configured");
+    const GOOGLE_API_KEY = Deno.env.get("GOOGLE_API_KEY");
+    if (!GOOGLE_API_KEY) {
+      console.error("GOOGLE_API_KEY is not configured");
       return new Response(
         JSON.stringify({ error: "Configuração de API faltando" }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -39,7 +39,7 @@ serve(async (req) => {
     const clientData = cleanBase64(clientImage);
     const clothingData = cleanBase64(clothingImage);
 
-    // High-fidelity prompt calibrated for fitness virtual try-on (original calibrated prompt)
+    // High-fidelity prompt calibrated for fitness virtual try-on
     const synthesisPrompt = `
       CONTEXT: High-end virtual try-on for professional fitness e-commerce.
       
@@ -51,12 +51,12 @@ serve(async (req) => {
       3. PHYSICS: Adapt the fabric to the person's pose, creating realistic compression wrinkles and highlights typical of sports fabrics (spandex/polyamide).
       4. CLEANLINESS: Seamlessly remove the old clothing. Edges where skin meets fabric must be photorealistic.
       
-      OUTPUT: Return ONLY the raw base64 data of the resulting image. No markdown, no text.
+      OUTPUT: Return the synthesized image.
     `;
 
     // Prompt for generating dynamic description
     const descriptionPrompt = `
-      Analyze IMAGE 2 (the garment) and generate a SHORT, objective description (max 25 words) in Portuguese (Brazil) describing how the synthesis was done.
+      Analyze this garment image and generate a SHORT, objective description (max 25 words) in Portuguese (Brazil) describing the virtual try-on result.
       
       Focus on:
       - The main colors of the garment
@@ -69,146 +69,179 @@ serve(async (req) => {
       OUTPUT: Return ONLY the description text in Portuguese. No quotes, no markdown.
     `;
 
-    console.log("Calling Lovable AI for try-on synthesis...");
+    console.log("Calling Google Gemini for try-on synthesis...");
 
     const callWithRetry = async (retries = 3): Promise<Response> => {
       for (let attempt = 1; attempt <= retries; attempt++) {
         console.log(`Attempt ${attempt}/${retries}`);
         
-        const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${LOVABLE_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash-image-preview",
-            messages: [
-              {
-                role: "user",
-                content: [
-                  { type: "text", text: synthesisPrompt },
+        try {
+          // Call Gemini API directly via REST
+          const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GOOGLE_API_KEY}`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                contents: [
                   {
-                    type: "image_url",
-                    image_url: { url: `data:image/jpeg;base64,${clientData}` }
-                  },
-                  {
-                    type: "image_url",
-                    image_url: { url: `data:image/jpeg;base64,${clothingData}` }
+                    role: 'user',
+                    parts: [
+                      { text: synthesisPrompt },
+                      {
+                        inlineData: {
+                          mimeType: 'image/jpeg',
+                          data: clientData
+                        }
+                      },
+                      {
+                        inlineData: {
+                          mimeType: 'image/jpeg',
+                          data: clothingData
+                        }
+                      }
+                    ]
                   }
-                ]
-              }
-            ],
-            modalities: ["image", "text"]
-          }),
-        });
+                ],
+                generationConfig: {
+                  responseModalities: ['TEXT', 'IMAGE']
+                }
+              })
+            }
+          );
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error(`Attempt ${attempt} error:`, response.status, errorText);
-          
-          if (response.status === 429) {
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`Attempt ${attempt} error:`, response.status, errorText);
+            
+            if (response.status === 429) {
+              return new Response(
+                JSON.stringify({ error: "Limite de requisições excedido. Tente novamente em alguns segundos." }),
+                { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+              );
+            }
+            if (response.status === 403 || errorText.includes('QUOTA')) {
+              return new Response(
+                JSON.stringify({ error: "Quota da API excedida. Verifique sua conta Google AI." }),
+                { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+              );
+            }
+            
+            // Retry on 500 errors
+            if (response.status >= 500 && attempt < retries) {
+              const delay = attempt * 2000;
+              console.log(`Waiting ${delay}ms before retry...`);
+              await new Promise(r => setTimeout(r, delay));
+              continue;
+            }
+            
             return new Response(
-              JSON.stringify({ error: "Limite de requisições excedido. Tente novamente em alguns segundos." }),
-              { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+              JSON.stringify({ error: "Erro ao processar imagem com IA" }),
+              { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
           }
-          if (response.status === 402) {
+
+          const data = await response.json();
+          console.log("Gemini response received");
+
+          // Check for blocked content
+          if (data.promptFeedback?.blockReason) {
+            console.warn(`Attempt ${attempt} blocked:`, data.promptFeedback.blockReason);
+            if (attempt < retries) {
+              const delay = attempt * 2000;
+              console.log(`Waiting ${delay}ms before retry...`);
+              await new Promise(r => setTimeout(r, delay));
+              continue;
+            }
             return new Response(
-              JSON.stringify({ error: "Créditos insuficientes. Adicione créditos ao seu workspace." }),
-              { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+              JSON.stringify({ error: "As imagens não puderam ser processadas. Tente com imagens diferentes." }),
+              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
           }
-          
-          // Retry on 500 errors
-          if (response.status === 500 && attempt < retries) {
+
+          // Extract generated image from response
+          const parts = data.candidates?.[0]?.content?.parts;
+          let generatedImageData: string | null = null;
+
+          if (parts) {
+            for (const part of parts) {
+              if (part.inlineData?.mimeType?.startsWith('image/')) {
+                generatedImageData = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+                break;
+              }
+            }
+          }
+
+          if (generatedImageData) {
+            console.log("Successfully generated try-on image, now generating description...");
+            
+            // Generate dynamic description based on the clothing image
+            let description = "As estampas e cores foram transferidas com precisão cromática, adaptando-se às dobras e luz do corpo.";
+            
+            try {
+              const descResponse = await fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GOOGLE_API_KEY}`,
+                {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    contents: [
+                      {
+                        role: 'user',
+                        parts: [
+                          { text: descriptionPrompt },
+                          {
+                            inlineData: {
+                              mimeType: 'image/jpeg',
+                              data: clothingData
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  })
+                }
+              );
+              
+              if (descResponse.ok) {
+                const descData = await descResponse.json();
+                const generatedDesc = descData.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (generatedDesc && generatedDesc.trim().length > 10) {
+                  description = generatedDesc.trim();
+                  console.log("Generated description:", description);
+                }
+              }
+            } catch (descError) {
+              console.warn("Failed to generate description, using default:", descError);
+            }
+            
+            return new Response(
+              JSON.stringify({ resultImage: generatedImageData, description }),
+              { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+
+          console.error("No image in response, parts:", JSON.stringify(parts));
+          if (attempt < retries) {
             const delay = attempt * 2000;
-            console.log(`Waiting ${delay}ms before retry...`);
             await new Promise(r => setTimeout(r, delay));
             continue;
           }
+        } catch (apiError) {
+          console.error(`Attempt ${attempt} API error:`, apiError);
           
-          return new Response(
-            JSON.stringify({ error: "Erro ao processar imagem com IA" }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-
-        const data = await response.json();
-        console.log("Lovable AI response received");
-
-        // Check for safety filter
-        const finishReason = data.choices?.[0]?.native_finish_reason;
-        if (finishReason === "IMAGE_SAFETY") {
-          console.warn(`Attempt ${attempt} blocked by safety filter`);
           if (attempt < retries) {
             const delay = attempt * 2000;
             console.log(`Waiting ${delay}ms before retry...`);
             await new Promise(r => setTimeout(r, delay));
             continue;
           }
-          return new Response(
-            JSON.stringify({ error: "As imagens não puderam ser processadas. Tente com imagens diferentes." }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-
-        // Extract the generated image from the response
-        const generatedImage = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-
-        if (generatedImage) {
-          console.log("Successfully generated try-on image, now generating description...");
           
-          // Generate dynamic description based on the clothing image
-          let description = "As estampas e cores foram transferidas com precisão cromática, adaptando-se às dobras e luz do corpo.";
-          
-          try {
-            const descResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${LOVABLE_API_KEY}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                model: "google/gemini-2.5-flash",
-                messages: [
-                  {
-                    role: "user",
-                    content: [
-                      { type: "text", text: descriptionPrompt },
-                      {
-                        type: "image_url",
-                        image_url: { url: `data:image/jpeg;base64,${clothingData}` }
-                      }
-                    ]
-                  }
-                ]
-              }),
-            });
-            
-            if (descResponse.ok) {
-              const descData = await descResponse.json();
-              const generatedDesc = descData.choices?.[0]?.message?.content;
-              if (generatedDesc && generatedDesc.trim().length > 10) {
-                description = generatedDesc.trim();
-                console.log("Generated description:", description);
-              }
-            }
-          } catch (descError) {
-            console.warn("Failed to generate description, using default:", descError);
-          }
-          
-          return new Response(
-            JSON.stringify({ resultImage: generatedImage, description }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-
-        console.error("No image in response:", JSON.stringify(data));
-        if (attempt < retries) {
-          const delay = attempt * 2000;
-          await new Promise(r => setTimeout(r, delay));
-          continue;
+          throw apiError;
         }
       }
       
