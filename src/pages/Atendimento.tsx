@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MessageSquare, Upload, Image, Sparkles, Check, Loader2, Download, RefreshCw } from "lucide-react";
+import { MessageSquare, Upload, Image, Sparkles, Check, Loader2, Download, RefreshCw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProcessingModal } from "@/components/tryon/ProcessingModal";
 import { BlockedScreen } from "@/components/credits/BlockedScreen";
@@ -299,11 +299,20 @@ export default function Atendimento() {
                       </div>
                     </div>
                   ) : clientPhoto ? (
-                    <img
-                      src={clientPhoto}
-                      alt="Cliente"
-                      className="w-full h-full object-cover"
-                    />
+                    <div className="relative w-full h-full group">
+                      <img
+                        src={clientPhoto}
+                        alt="Cliente"
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        onClick={() => setClientPhoto(null)}
+                        className="absolute top-2 right-2 lg:top-3 lg:right-3 w-7 h-7 lg:w-8 lg:h-8 rounded-full bg-black/60 hover:bg-destructive flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Remover foto"
+                      >
+                        <X className="w-4 h-4 text-white" />
+                      </button>
+                    </div>
                   ) : (
                     <label className="cursor-pointer flex flex-col items-center gap-2 lg:gap-3 p-4 lg:p-8">
                       <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-full bg-muted flex items-center justify-center">
