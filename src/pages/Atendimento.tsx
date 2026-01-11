@@ -202,14 +202,14 @@ export default function Atendimento() {
     <div className="animate-fade-in min-h-[calc(100vh-7rem)]">
       <div className="flex flex-col lg:grid lg:grid-cols-12 gap-4 lg:gap-6 h-full">
         {/* Leads Panel */}
-        <div className="lg:col-span-3 bg-card border border-border rounded-xl overflow-hidden flex flex-col max-h-48 lg:max-h-none">
+        <div className="lg:col-span-3 bg-card/50 border border-border/50 rounded-2xl overflow-hidden flex flex-col max-h-48 lg:max-h-none">
           {/* Header */}
-          <div className="p-3 lg:p-4 border-b border-border flex items-center justify-between">
+          <div className="p-3 lg:p-4 border-b border-border/50 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <MessageSquare className="w-4 h-4 lg:w-5 lg:h-5 text-muted-foreground" />
-              <span className="font-semibold text-foreground text-sm lg:text-base">INBOX LEADS</span>
+              <MessageSquare className="w-4 h-4 text-muted-foreground/70" />
+              <span className="font-medium text-foreground/80 text-xs lg:text-sm tracking-wide">INBOX LEADS</span>
             </div>
-            <button className="px-3 lg:px-4 py-1.5 bg-primary text-primary-foreground text-[10px] lg:text-xs font-semibold rounded-full hover:bg-primary/90 transition-colors">
+            <button className="px-3 py-1 bg-primary text-primary-foreground text-[10px] font-medium rounded-full hover:bg-primary/90 transition-colors tracking-wide">
               NOVO LEAD
             </button>
           </div>
@@ -220,28 +220,30 @@ export default function Atendimento() {
               <button
                 key={lead.id}
                 onClick={() => setSelectedLead(lead)}
-                className={`w-full p-3 lg:p-4 border-b border-border text-left transition-colors hover:bg-muted/30 relative ${
-                  selectedLead?.id === lead.id ? "bg-muted/20" : ""
+                className={`w-full p-3 lg:p-4 border-b border-border/30 text-left transition-colors hover:bg-muted/20 relative ${
+                  selectedLead?.id === lead.id ? "bg-muted/10" : ""
                 }`}
               >
                 {/* Selection indicator bar */}
                 {selectedLead?.id === lead.id && (
-                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />
+                  <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-primary" />
                 )}
                 {/* Phone + Time */}
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-semibold text-foreground text-sm lg:text-base">{lead.phone}</span>
-                  <span className="text-[10px] lg:text-xs text-muted-foreground">{lead.time}</span>
+                  <span className="font-medium text-foreground/90 text-sm">{lead.phone}</span>
+                  <span className="text-[10px] text-muted-foreground/60 font-light">{lead.time}</span>
                 </div>
                 {/* Icon + Status */}
                 <div className="flex items-center gap-2">
                   {lead.hasPhoto && (
-                    <div className="w-6 h-6 lg:w-7 lg:h-7 rounded bg-muted/50 flex items-center justify-center">
-                      <Image className="w-3 h-3 lg:w-4 lg:h-4 text-muted-foreground" />
+                    <div className="w-6 h-6 rounded bg-muted/30 flex items-center justify-center">
+                      <Image className="w-3 h-3 text-muted-foreground/50" />
                     </div>
                   )}
-                  <span className={`status-badge text-[10px] lg:text-xs ${
-                    lead.status === "pending" ? "status-pending" : "status-success"
+                  <span className={`text-[10px] font-medium px-2 py-0.5 rounded ${
+                    lead.status === "pending" 
+                      ? "bg-warning/20 text-warning" 
+                      : "bg-success/20 text-success"
                   }`}>
                     {lead.status === "pending" ? "PENDENTE" : "FINALIZADO"}
                   </span>
