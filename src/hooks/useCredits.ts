@@ -116,9 +116,75 @@ export function useCredits(): UseCreditsReturn {
     }
   }, [store?.id]);
 
+  // Initial fetch
   useEffect(() => {
     fetchCreditsData();
   }, [fetchCreditsData]);
+
+  // Real-time subscription for credit updates
+  useEffect(() => {
+    if (!store?.id) return;
+
+    const channel = supabase
+      .channel(`store-credits-${store.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'stores',
+          filter: `id=eq.${store.id}`,
+        },
+        (payload) => {
+          console.log('Credits updated via realtime:', payload);
+          // Update state directly from payload to avoid extra fetch
+          const newData = payload.new as {
+            plan_credits?: number;
+            extra_credits?: number;
+            plan?: string;
+            trial_ends_at?: string;
+            plan_renews_at?: string;
+          };
+          
+          const planCredits = newData.plan_credits ?? 0;
+          const extraCredits = newData.extra_credits ?? 0;
+          const totalCredits = planCredits + extraCredits;
+          const plan = newData.plan ?? "trial";
+          const trialEndsAt = newData.trial_ends_at ? new Date(newData.trial_ends_at) : null;
+          const planRenewsAt = newData.plan_renews_at ? new Date(newData.plan_renews_at) : null;
+
+          let isBlocked = false;
+          let blockReason: BlockReason = null;
+
+          if (plan === "trial" && trialEndsAt && trialEndsAt < new Date()) {
+            isBlocked = true;
+            blockReason = "TRIAL_EXPIRED";
+          } else if (totalCredits <= 0) {
+            isBlocked = true;
+            blockReason = "NO_CREDITS";
+          }
+
+          setData({
+            planCredits,
+            extraCredits,
+            totalCredits,
+            plan,
+            planName: planNames[plan] || plan,
+            trialEndsAt,
+            planRenewsAt,
+            isBlocked,
+            blockReason,
+            daysToRenew: calculateDaysRemaining(planRenewsAt),
+            daysToTrialEnd: calculateDaysRemaining(trialEndsAt),
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [store?.id]);
 
   const canGenerateTryOn = useCallback(async (): Promise<{ allowed: boolean; reason?: string }> => {
     if (!store?.id) {
@@ -161,8 +227,7 @@ export function useCredits(): UseCreditsReturn {
       const typedResult = result as { success?: boolean; credits_remaining?: number; error?: string } | null;
 
       if (typedResult?.success) {
-        // Refetch to update local state
-        await fetchCreditsData();
+        // No need to refetch - realtime will update the state
         return {
           success: true,
           creditsRemaining: typedResult.credits_remaining,
@@ -174,7 +239,7 @@ export function useCredits(): UseCreditsReturn {
       console.error("Error consuming credit:", err);
       return { success: false, error: "ERROR" };
     }
-  }, [store?.id, fetchCreditsData]);
+  }, [store?.id]);
 
   return {
     ...data,
