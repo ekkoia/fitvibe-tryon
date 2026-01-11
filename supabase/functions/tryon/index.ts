@@ -76,9 +76,9 @@ serve(async (req) => {
         console.log(`Attempt ${attempt}/${retries}`);
         
         try {
-          // Call Gemini API directly via REST - using gemini-2.5-flash-image for image generation
+          // Call Gemini API directly via REST - using official image generation model
           const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${GOOGLE_API_KEY}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${GOOGLE_API_KEY}`,
             {
               method: 'POST',
               headers: {
@@ -146,6 +146,19 @@ serve(async (req) => {
           const data = await response.json();
           console.log("Gemini response received");
 
+          const responseSummary = {
+            promptFeedback: data?.promptFeedback,
+            candidatesCount: Array.isArray(data?.candidates) ? data.candidates.length : 0,
+            candidate0FinishReason: data?.candidates?.[0]?.finishReason,
+            candidate0PartKeys: Array.isArray(data?.candidates?.[0]?.content?.parts)
+              ? data.candidates[0].content.parts.map((p: any) => Object.keys(p ?? {}))
+              : null,
+          };
+
+          if (!data?.candidates?.length) {
+            console.error("Gemini returned no candidates:", JSON.stringify(responseSummary));
+          }
+
           // Check for blocked content
           if (data.promptFeedback?.blockReason) {
             console.warn(`Attempt ${attempt} blocked:`, data.promptFeedback.blockReason);
@@ -167,8 +180,13 @@ serve(async (req) => {
 
           if (parts) {
             for (const part of parts) {
-              if (part.inlineData?.mimeType?.startsWith('image/')) {
-                generatedImageData = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+              const inline = (part?.inlineData ?? part?.inline_data) as
+                | { mimeType?: string; mime_type?: string; data?: string }
+                | undefined;
+              const mimeType = inline?.mimeType ?? inline?.mime_type;
+
+              if (mimeType?.startsWith('image/') && inline?.data) {
+                generatedImageData = `data:${mimeType};base64,${inline.data}`;
                 break;
               }
             }
@@ -225,7 +243,7 @@ serve(async (req) => {
             );
           }
 
-          console.error("No image in response, parts:", JSON.stringify(parts));
+          console.error("No image in response.", JSON.stringify(responseSummary));
           if (attempt < retries) {
             const delay = attempt * 2000;
             await new Promise(r => setTimeout(r, delay));
