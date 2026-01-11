@@ -302,7 +302,7 @@ export default function Atendimento() {
                     <img
                       src={clientPhoto}
                       alt="Cliente"
-                      className="w-full h-full object-contain"
+                      className="w-full h-full object-cover"
                     />
                   ) : (
                     <label className="cursor-pointer flex flex-col items-center gap-2 lg:gap-3 p-4 lg:p-8">
