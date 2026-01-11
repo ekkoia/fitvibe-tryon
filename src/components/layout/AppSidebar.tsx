@@ -9,7 +9,7 @@ import {
   ChevronRight,
   User,
 } from "lucide-react";
-import cabeproLogo from "@/assets/cabepro-logo.png";
+import cabeproLogo from "@/assets/cabepro-logo-horizontal.png";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/AuthContext";
