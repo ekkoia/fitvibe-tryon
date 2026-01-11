@@ -207,7 +207,7 @@ export default function Atendimento() {
           <div className="p-3 lg:p-4 border-b border-border/50 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <MessageSquare className="w-4 h-4 text-primary" />
-              <span className="font-normal text-muted-foreground/60 text-[11px] lg:text-xs tracking-wide">INBOX LEADS</span>
+              <span className="font-normal text-foreground/70 text-[11px] lg:text-xs tracking-wide">INBOX LEADS</span>
             </div>
             <button className="px-3 py-1 bg-primary text-primary-foreground text-[10px] font-medium rounded-full hover:bg-primary/90 transition-colors tracking-wide">
               NOVO LEAD
